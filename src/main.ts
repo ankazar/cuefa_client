@@ -1,35 +1,92 @@
-import { Application, Assets, Sprite } from "pixi.js";
+import { Application } from 'pixi.js';
+import { MenuScene } from './scenes/MenuScene';
+import { TournamentsScene } from './scenes/TournamentsScene';
+import { TournamentInfoScene } from './scenes/TournamentInfoScene';
+import { FindOpponentScene } from './scenes/FindOpponentScene';
+import { MatchScene } from './scenes/MatchScene';
+import { ResultsScene } from './scenes/ResultsScene';
+import './styles/styles.css';
 
-(async () => {
-  // Create a new application
-  const app = new Application();
+class Game {
+  private app: Application;
+  private currentScene: any = null;
+  private scenes: Map<string, any> = new Map();
 
-  // Initialize the application
-  await app.init({ background: "#1099bb", resizeTo: window });
+  constructor() {
+    this.init();
+  }
 
-  // Append the application canvas to the document body
-  document.getElementById("pixi-container")!.appendChild(app.canvas);
+  async init(): Promise<void> {
+    try {
+      // Инициализация PixiJS
+      this.app = new Application();
+      await this.app.init({
+        width: 800,
+        height: 600,
+        backgroundColor: 0x1a1a1a,
+        resizeTo: window
+      });
 
-  // Load the bunny texture
-  const texture = await Assets.load("/assets/bunny.png");
+      // Добавляем canvas
+      const pixiContainer = document.getElementById('pixi-container');
+      if (!pixiContainer) throw new Error('Контейнер не найден');
+      
+      pixiContainer.innerHTML = '';
+      pixiContainer.appendChild(this.app.canvas as HTMLCanvasElement);
 
-  // Create a bunny Sprite
-  const bunny = new Sprite(texture);
+      // Регистрируем сцены
+      this.scenes.set('MenuScene', MenuScene);
+      this.scenes.set('TournamentsScene', TournamentsScene);
+      this.scenes.set('TournamentInfoScene', TournamentInfoScene);
+      this.scenes.set('FindOpponentScene', FindOpponentScene);
+      this.scenes.set('MatchScene', MatchScene); 
+      this.scenes.set('ResultsScene', ResultsScene);
 
-  // Center the sprite's anchor point
-  bunny.anchor.set(0.5);
+      // Запускаем начальную сцену
+      await this.changeScene('MenuScene');
 
-  // Move the sprite to the center of the screen
-  bunny.position.set(app.screen.width / 2, app.screen.height / 2);
+      console.log('✅ Игра запущена!');
 
-  // Add the bunny to the stage
-  app.stage.addChild(bunny);
+    } catch (error) {
+      console.error('❌ Ошибка:', error);
+    }
+  }
 
-  // Listen for animate update
-  app.ticker.add((time) => {
-    // Just for fun, let's rotate mr rabbit a little.
-    // * Delta is 1 if running at 100% performance *
-    // * Creates frame-independent transformation *
-    bunny.rotation += 0.1 * time.deltaTime;
-  });
-})();
+  private async changeScene(sceneName: string, data?: any): Promise<void> {
+    // Удаляем текущую сцену
+    if (this.currentScene) {
+      this.currentScene.destroy();
+      this.app.stage.removeChild(this.currentScene.container);
+    }
+
+    // Создаем новую сцену
+    const SceneClass = this.scenes.get(sceneName);
+    if (!SceneClass) {
+      throw new Error(`Сцена ${sceneName} не найдена`);
+    }
+
+    this.currentScene = new SceneClass(this.app);
+    
+    // Подписываемся на событие смены сцены
+    this.currentScene.on('change-scene', (newScene: string, sceneData?: any) => {
+      this.changeScene(newScene, sceneData);
+    });
+
+    this.app.stage.addChild(this.currentScene.container);
+    
+    // Передаем данные в сцену, если они есть
+    await this.currentScene.init(data);
+
+    // Настраиваем обработчик ресайза
+    if (this.currentScene.resize) {
+      window.addEventListener('resize', () => {
+        this.currentScene.resize(this.app.screen.width, this.app.screen.height);
+      });
+    }
+
+    console.log(`🎮 Переключено на сцену: ${sceneName}`, data ? 'с данными' : '');
+  }
+}
+
+// Запуск игры
+new Game();
