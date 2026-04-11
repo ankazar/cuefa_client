@@ -1,20 +1,49 @@
 import { BaseScene } from './BaseScene';
-import { Graphics, Text, Container } from 'pixi.js';
-import { Button } from '../components/Button';
+import { Graphics, Text, Container, Sprite, Assets, Texture } from 'pixi.js';
 
 export class MatchScene extends BaseScene {
   private background!: Graphics;
   private title!: Text;
   private contentContainer!: Container;
+  private gameImage1!: Sprite;
+  private gameImage2!: Sprite;
   private tournamentData: any;
-  private matchTimer: number = 5; // Укороченный таймер для тестирования
+  private matchTimer: number = 5;
+  
+  // Флаги состояния
+  private isLoading: boolean = true;
+  private loadingText!: Text;
+  private loadingDots: number = 0;
+  private loadingInterval?: NodeJS.Timeout;
+  private timerInterval?: NodeJS.Timeout;
+  private timerText?: Text;
+
+  // Пути к изображениям
+  private readonly IMAGE_PATHS = {
+    left: 'assets/images/K.jpg',
+    right: 'assets/images/K.jpg'
+  };
 
   async init(tournamentData?: any): Promise<void> {
     console.log('🎮 MatchScene init вызван с данными:', tournamentData);
     this.tournamentData = tournamentData || this.getDefaultTournamentData();
+    
     this.createBackground();
     this.createTitle();
-    this.createContent();
+    this.createContentContainer();
+    this.createPlayers();
+    this.createMatchInfo();
+    
+    // Показываем индикатор загрузки
+    this.showLoadingIndicator();
+    
+    // Загружаем изображения
+    await this.loadGameImages();
+    
+    // Скрываем индикатор и показываем игровое поле
+    this.hideLoadingIndicator();
+    this.createGameField();
+    
     this.startMatch();
   }
 
@@ -52,15 +81,11 @@ export class MatchScene extends BaseScene {
     this.container.addChild(this.title);
   }
 
-  private createContent(): void {
+  private createContentContainer(): void {
     this.contentContainer = new Container();
     this.contentContainer.x = this.centerX();
     this.contentContainer.y = 200;
     this.container.addChild(this.contentContainer);
-
-    this.createPlayers();
-    this.createMatchInfo();
-    this.createGameField();
   }
 
   private createPlayers(): void {
@@ -98,14 +123,12 @@ export class MatchScene extends BaseScene {
     const cardWidth = 140;
     const cardHeight = 120;
 
-    // Фон карточки игрока
     const bg = new Graphics();
     bg.roundRect(-cardWidth / 2, 0, cardWidth, cardHeight, 10);
     bg.fill(0x2c3e50);
     bg.stroke({ width: 3, color: color });
     card.addChild(bg);
 
-    // Имя игрока
     const nameText = new Text({
       text: name,
       style: {
@@ -120,7 +143,6 @@ export class MatchScene extends BaseScene {
     nameText.y = 30;
     card.addChild(nameText);
 
-    // Рейтинг
     const ratingText = new Text({
       text: `⭐ ${rating}`,
       style: {
@@ -134,7 +156,6 @@ export class MatchScene extends BaseScene {
     ratingText.y = 60;
     card.addChild(ratingText);
 
-    // Статус
     const statusText = new Text({
       text: 'Играет...',
       style: {
@@ -182,18 +203,25 @@ export class MatchScene extends BaseScene {
     this.contentContainer.addChild(prizeText);
   }
 
-  private createGameField(): void {
+  private showLoadingIndicator(): void {
     const fieldY = 190;
-
-    // Игровое поле
-    const field = new Graphics();
-    field.rect(-200, fieldY, 400, 200);
-    field.fill(0x34495e);
-    field.stroke({ width: 2, color: 0x4a6572 });
-    this.contentContainer.addChild(field);
-
-    const fieldText = new Text({
-      text: '🎮 ИГРОВОЙ ПРОЦЕСС 🎮',
+    
+    // Создаём контейнер для индикатора загрузки
+    const loadingContainer = new Container();
+    loadingContainer.name = 'loadingContainer';
+    loadingContainer.x = 0;
+    loadingContainer.y = fieldY + 100;
+    
+    // Фон индикатора
+    const loadingBg = new Graphics();
+    loadingBg.rect(-150, -30, 300, 60);
+    loadingBg.fill(0x2c3e50, 0.8);
+    loadingBg.stroke({ width: 2, color: 0x3498db });
+    loadingContainer.addChild(loadingBg);
+    
+    // Текст загрузки
+    this.loadingText = new Text({
+      text: 'Загрузка',
       style: {
         fill: 0xecf0f1,
         fontSize: 20,
@@ -201,13 +229,177 @@ export class MatchScene extends BaseScene {
         fontWeight: 'bold'
       }
     });
-    fieldText.anchor.set(0.5);
-    fieldText.x = 0;
-    fieldText.y = fieldY + 100;
-    this.contentContainer.addChild(fieldText);
+    this.loadingText.anchor.set(0.5);
+    this.loadingText.x = 0;
+    this.loadingText.y = 0;
+    loadingContainer.addChild(this.loadingText);
+    
+    // Спиннер (вращающийся элемент)
+    const spinner = new Graphics();
+    spinner.name = 'spinner';
+    spinner.circle(0, 40, 8);
+    spinner.fill(0x3498db, 0.5);
+    spinner.stroke({ width: 2, color: 0x3498db });
+    loadingContainer.addChild(spinner);
+    
+    this.contentContainer.addChild(loadingContainer);
+    
+    // Анимация спиннера
+    let rotation = 0;
+    const spinnerInterval = setInterval(() => {
+      if (!spinner.destroyed) {
+        rotation += 0.2;
+        spinner.rotation = rotation;
+      }
+    }, 50);
+    
+    // Сохраняем ID интервала для очистки
+    (spinner as any).intervalId = spinnerInterval;
+    
+    // Анимация точек загрузки
+    this.loadingInterval = setInterval(() => {
+      if (this.loadingText && !this.loadingText.destroyed) {
+        this.loadingDots = (this.loadingDots + 1) % 4;
+        const dots = '.'.repeat(this.loadingDots);
+        this.loadingText.text = `Загрузка${dots}`;
+      }
+    }, 300);
+  }
+
+  private hideLoadingIndicator(): void {
+    // Очищаем интервал анимации точек
+    if (this.loadingInterval) {
+      clearInterval(this.loadingInterval);
+      this.loadingInterval = undefined;
+    }
+    
+    // Находим и удаляем контейнер загрузки
+    const loadingContainer = this.contentContainer.getChildByName('loadingContainer');
+    if (loadingContainer) {
+      // Очищаем интервал спиннера
+      const spinner = loadingContainer.getChildByName('spinner');
+      if (spinner && (spinner as any).intervalId) {
+        clearInterval((spinner as any).intervalId);
+      }
+      
+      this.contentContainer.removeChild(loadingContainer);
+      loadingContainer.destroy({ children: true });
+    }
+  }
+
+private async loadGameImages(): Promise<void> {
+    try {
+        // После предзагрузки текстуры уже в кэше
+        const texture1 = Assets.cache.get('gameplay_left') as Texture;
+        const texture2 = Assets.cache.get('gameplay_right') as Texture;
+        
+        if (!texture1 || !texture2) {
+            throw new Error('Текстуры не найдены в кэше');
+        }
+        
+        this.gameImage1 = new Sprite(texture1);
+        this.gameImage2 = new Sprite(texture2);
+        
+    } catch (error) {
+        console.error('Ошибка получения текстур из кэша:', error);
+        // Используем fallback
+        this.gameImage1 = new Sprite(this.createFallbackTexture('🎮', 0x3498db));
+        this.gameImage2 = new Sprite(this.createFallbackTexture('⚔️', 0xe74c3c));
+    }
+}
+
+  private createFallbackTexture(emoji: string, color: number): Texture {
+    // Создаём Canvas элемент
+    const canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 300;
+    const ctx = canvas.getContext('2d')!;
+    
+    // Рисуем фон
+    ctx.fillStyle = '#' + color.toString(16).padStart(6, '0');
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Рисуем градиент
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Рисуем рамку
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+    
+    // Рисуем эмодзи
+    ctx.font = '80px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(emoji, canvas.width / 2, canvas.height / 2);
+    
+    return Texture.from(canvas);
+  }
+
+  private createGameField(): void {
+    const fieldY = 190;
+    const imageWidth = 180;
+    const imageHeight = 120;
+    const gap = 20;
+
+    this.isLoading = false;
+
+    // Настраиваем первое изображение
+    this.gameImage1.anchor.set(0.5);
+    this.gameImage1.width = imageWidth;
+    this.gameImage1.height = imageHeight;
+    this.gameImage1.x = -imageWidth / 2 - gap / 2;
+    this.gameImage1.y = fieldY + imageHeight / 2;
+    
+    const border1 = this.createImageBorder(
+      this.gameImage1.x, 
+      fieldY, 
+      imageWidth, 
+      imageHeight,
+      0x3498db
+    );
+    this.contentContainer.addChild(border1);
+    this.contentContainer.addChild(this.gameImage1);
+
+    // Настраиваем второе изображение
+    this.gameImage2.anchor.set(0.5);
+    this.gameImage2.width = imageWidth;
+    this.gameImage2.height = imageHeight;
+    this.gameImage2.x = imageWidth / 2 + gap / 2;
+    this.gameImage2.y = fieldY + imageHeight / 2;
+    
+    const border2 = this.createImageBorder(
+      this.gameImage2.x, 
+      fieldY, 
+      imageWidth, 
+      imageHeight,
+      0xe74c3c
+    );
+    this.contentContainer.addChild(border2);
+    this.contentContainer.addChild(this.gameImage2);
+
+    // Подпись под изображениями
+    const labelText = new Text({
+      text: '⚔️ ИДЁТ СРАЖЕНИЕ ⚔️',
+      style: {
+        fill: 0xe74c3c,
+        fontSize: 16,
+        fontFamily: 'Arial',
+        fontWeight: 'bold'
+      }
+    });
+    labelText.anchor.set(0.5);
+    labelText.x = 0;
+    labelText.y = fieldY + imageHeight + 25;
+    this.contentContainer.addChild(labelText);
 
     // Таймер матча
-    const timerText = new Text({
+    this.timerText = new Text({
       text: `Матч через: ${this.matchTimer} сек`,
       style: {
         fill: 0xe74c3c,
@@ -216,21 +408,43 @@ export class MatchScene extends BaseScene {
         fontWeight: 'bold'
       }
     });
-    timerText.anchor.set(0.5);
-    timerText.x = 0;
-    timerText.y = fieldY + 230;
-    this.contentContainer.addChild(timerText);
+    this.timerText.anchor.set(0.5);
+    this.timerText.x = 0;
+    this.timerText.y = fieldY + imageHeight + 50;
+    this.contentContainer.addChild(this.timerText);
 
-    // Таймер матча
-    const timerInterval = setInterval(() => {
+    // Запускаем таймер
+    this.startTimer();
+  }
+
+  private createImageBorder(centerX: number, y: number, width: number, height: number, color: number): Graphics {
+    const border = new Graphics();
+    border.rect(centerX - width / 2, y, width, height);
+    border.stroke({ width: 3, color: color });
+    border.fill(0x2c3e50, 0.3);
+    return border;
+  }
+
+  private startTimer(): void {
+    this.timerInterval = setInterval(() => {
       this.matchTimer--;
-      timerText.text = `Матч через: ${this.matchTimer} сек`;
+      
+      if (this.timerText && !this.timerText.destroyed) {
+        this.timerText.text = `Матч через: ${this.matchTimer} сек`;
+      }
 
       if (this.matchTimer <= 0) {
-        clearInterval(timerInterval);
-        this.finishMatch();
+        this.stopTimer();
+        //this.finishMatch();
       }
     }, 1000);
+  }
+
+  private stopTimer(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = undefined;
+    }
   }
 
   private startMatch(): void {
@@ -240,10 +454,8 @@ export class MatchScene extends BaseScene {
   private finishMatch(): void {
     console.log('⏰ Матч завершен!');
     
-    // Генерируем случайный результат
     const result = this.generateMatchResult();
     
-    // Переходим на сцену результатов
     this.emit('change-scene', 'ResultsScene', {
       tournament: this.tournamentData,
       result: result
@@ -285,5 +497,16 @@ export class MatchScene extends BaseScene {
     if (this.contentContainer) {
       this.contentContainer.x = this.centerX();
     }
+  }
+
+  // Очистка ресурсов при уходе со сцены
+  destroy(options?: any): void {
+    this.stopTimer();
+    
+    if (this.loadingInterval) {
+      clearInterval(this.loadingInterval);
+    }
+    
+    super.destroy(options);
   }
 }

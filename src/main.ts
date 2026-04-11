@@ -1,4 +1,5 @@
 import { Application } from 'pixi.js';
+import { BootScene } from './scenes/BootScene';
 import { MenuScene } from './scenes/MenuScene';
 import { TournamentsScene } from './scenes/TournamentsScene';
 import { TournamentInfoScene } from './scenes/TournamentInfoScene';
@@ -35,6 +36,7 @@ class Game {
       pixiContainer.appendChild(this.app.canvas as HTMLCanvasElement);
 
       // Регистрируем сцены
+      this.scenes.set('BootScene', BootScene);
       this.scenes.set('MenuScene', MenuScene);
       this.scenes.set('TournamentsScene', TournamentsScene);
       this.scenes.set('TournamentInfoScene', TournamentInfoScene);
@@ -43,7 +45,10 @@ class Game {
       this.scenes.set('ResultsScene', ResultsScene);
 
       // Запускаем начальную сцену
-      await this.changeScene('MenuScene');
+      //await this.changeScene('MenuScene');
+
+      // Запускаем сцену загрузки
+      await this.changeScene('BootScene');
 
       console.log('✅ Игра запущена!');
 
