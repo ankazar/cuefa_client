@@ -18,6 +18,10 @@ export class MatchScene extends BaseScene {
   private timerInterval?: NodeJS.Timeout;
   private timerText?: Text;
 
+  private actionButtons: (Container & { onPress?: () => void; actionType?: string })[] = [];
+  private isActionLocked: boolean = false;
+  private selectedAction: string | null = null;
+
   // Пути к изображениям
   private readonly IMAGE_PATHS = {
     left: 'assets/images/K.jpg',
@@ -206,20 +210,17 @@ export class MatchScene extends BaseScene {
   private showLoadingIndicator(): void {
     const fieldY = 190;
     
-    // Создаём контейнер для индикатора загрузки
     const loadingContainer = new Container();
     loadingContainer.name = 'loadingContainer';
     loadingContainer.x = 0;
     loadingContainer.y = fieldY + 100;
     
-    // Фон индикатора
     const loadingBg = new Graphics();
     loadingBg.rect(-150, -30, 300, 60);
     loadingBg.fill(0x2c3e50, 0.8);
     loadingBg.stroke({ width: 2, color: 0x3498db });
     loadingContainer.addChild(loadingBg);
     
-    // Текст загрузки
     this.loadingText = new Text({
       text: 'Загрузка',
       style: {
@@ -234,7 +235,6 @@ export class MatchScene extends BaseScene {
     this.loadingText.y = 0;
     loadingContainer.addChild(this.loadingText);
     
-    // Спиннер (вращающийся элемент)
     const spinner = new Graphics();
     spinner.name = 'spinner';
     spinner.circle(0, 40, 8);
@@ -244,7 +244,6 @@ export class MatchScene extends BaseScene {
     
     this.contentContainer.addChild(loadingContainer);
     
-    // Анимация спиннера
     let rotation = 0;
     const spinnerInterval = setInterval(() => {
       if (!spinner.destroyed) {
@@ -253,10 +252,8 @@ export class MatchScene extends BaseScene {
       }
     }, 50);
     
-    // Сохраняем ID интервала для очистки
     (spinner as any).intervalId = spinnerInterval;
     
-    // Анимация точек загрузки
     this.loadingInterval = setInterval(() => {
       if (this.loadingText && !this.loadingText.destroyed) {
         this.loadingDots = (this.loadingDots + 1) % 4;
@@ -267,16 +264,13 @@ export class MatchScene extends BaseScene {
   }
 
   private hideLoadingIndicator(): void {
-    // Очищаем интервал анимации точек
     if (this.loadingInterval) {
       clearInterval(this.loadingInterval);
       this.loadingInterval = undefined;
     }
     
-    // Находим и удаляем контейнер загрузки
     const loadingContainer = this.contentContainer.getChildByName('loadingContainer');
     if (loadingContainer) {
-      // Очищаем интервал спиннера
       const spinner = loadingContainer.getChildByName('spinner');
       if (spinner && (spinner as any).intervalId) {
         clearInterval((spinner as any).intervalId);
@@ -287,51 +281,44 @@ export class MatchScene extends BaseScene {
     }
   }
 
-private async loadGameImages(): Promise<void> {
+  private async loadGameImages(): Promise<void> {
     try {
-        // После предзагрузки текстуры уже в кэше
-        const texture1 = Assets.cache.get('gameplay_left') as Texture;
-        const texture2 = Assets.cache.get('gameplay_right') as Texture;
-        
-        if (!texture1 || !texture2) {
-            throw new Error('Текстуры не найдены в кэше');
-        }
-        
-        this.gameImage1 = new Sprite(texture1);
-        this.gameImage2 = new Sprite(texture2);
-        
+      const texture1 = Assets.cache.get('gameplay_left') as Texture;
+      const texture2 = Assets.cache.get('gameplay_right') as Texture;
+      
+      if (!texture1 || !texture2) {
+        throw new Error('Текстуры не найдены в кэше');
+      }
+      
+      this.gameImage1 = new Sprite(texture1);
+      this.gameImage2 = new Sprite(texture2);
+      
     } catch (error) {
-        console.error('Ошибка получения текстур из кэша:', error);
-        // Используем fallback
-        this.gameImage1 = new Sprite(this.createFallbackTexture('🎮', 0x3498db));
-        this.gameImage2 = new Sprite(this.createFallbackTexture('⚔️', 0xe74c3c));
+      console.error('Ошибка получения текстур из кэша:', error);
+      this.gameImage1 = new Sprite(this.createFallbackTexture('🎮', 0x3498db));
+      this.gameImage2 = new Sprite(this.createFallbackTexture('⚔️', 0xe74c3c));
     }
-}
+  }
 
   private createFallbackTexture(emoji: string, color: number): Texture {
-    // Создаём Canvas элемент
     const canvas = document.createElement('canvas');
     canvas.width = 400;
     canvas.height = 300;
     const ctx = canvas.getContext('2d')!;
     
-    // Рисуем фон
     ctx.fillStyle = '#' + color.toString(16).padStart(6, '0');
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Рисуем градиент
     const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     gradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
     gradient.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Рисуем рамку
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 4;
     ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
     
-    // Рисуем эмодзи
     ctx.font = '80px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -349,7 +336,6 @@ private async loadGameImages(): Promise<void> {
 
     this.isLoading = false;
 
-    // Настраиваем первое изображение
     this.gameImage1.anchor.set(0.5);
     this.gameImage1.width = imageWidth;
     this.gameImage1.height = imageHeight;
@@ -366,7 +352,6 @@ private async loadGameImages(): Promise<void> {
     this.contentContainer.addChild(border1);
     this.contentContainer.addChild(this.gameImage1);
 
-    // Настраиваем второе изображение
     this.gameImage2.anchor.set(0.5);
     this.gameImage2.width = imageWidth;
     this.gameImage2.height = imageHeight;
@@ -383,20 +368,8 @@ private async loadGameImages(): Promise<void> {
     this.contentContainer.addChild(border2);
     this.contentContainer.addChild(this.gameImage2);
 
-    // Подпись под изображениями
-    const labelText = new Text({
-      text: '⚔️ ИДЁТ СРАЖЕНИЕ ⚔️',
-      style: {
-        fill: 0xe74c3c,
-        fontSize: 16,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
-    });
-    labelText.anchor.set(0.5);
-    labelText.x = 0;
-    labelText.y = fieldY + imageHeight + 25;
-    this.contentContainer.addChild(labelText);
+    // Три круглые кнопки
+    this.createRoundButtons(fieldY + imageHeight + 45);
 
     // Таймер матча
     this.timerText = new Text({
@@ -410,11 +383,284 @@ private async loadGameImages(): Promise<void> {
     });
     this.timerText.anchor.set(0.5);
     this.timerText.x = 0;
-    this.timerText.y = fieldY + imageHeight + 50;
+    this.timerText.y = fieldY + imageHeight + 100;
     this.contentContainer.addChild(this.timerText);
 
-    // Запускаем таймер
     this.startTimer();
+  }
+
+  private createRoundButtons(y: number): void {
+    const buttonRadius = 35;
+    const buttonGap = 30;
+    
+    const buttonsContainer = new Container();
+    buttonsContainer.x = 0;
+    buttonsContainer.y = y;
+    this.contentContainer.addChild(buttonsContainer);
+
+    // Кнопка 1 (Камень)
+    const rockButton = this.createRoundButton(
+      '✊',
+      0xe74c3c,
+      -buttonRadius * 2 - buttonGap,
+      0,
+      buttonRadius,
+      'rock'
+    );
+    rockButton.onPress = () => {
+      if (!this.isActionLocked) {
+        console.log('✊ Камень!');
+        this.onRock();
+      }
+    };
+    buttonsContainer.addChild(rockButton);
+    this.actionButtons.push(rockButton);
+
+    // Кнопка 2 (Ножницы)
+    const scissorsButton = this.createRoundButton(
+      '✌️',
+      0x3498db,
+      0,
+      0,
+      buttonRadius,
+      'scissors'
+    );
+    scissorsButton.onPress = () => {
+      if (!this.isActionLocked) {
+        console.log('✌️ Ножницы!');
+        this.onScissors();
+      }
+    };
+    buttonsContainer.addChild(scissorsButton);
+    this.actionButtons.push(scissorsButton);
+
+    // Кнопка 3 (Бумага)
+    const paperButton = this.createRoundButton(
+      '🤚',
+      0xf1c40f,
+      buttonRadius * 2 + buttonGap,
+      0,
+      buttonRadius,
+      'paper'
+    );
+    paperButton.onPress = () => {
+      if (!this.isActionLocked) {
+        console.log('🤚 Бумага!');
+        this.onPaper();
+      }
+    };
+    buttonsContainer.addChild(paperButton);
+    this.actionButtons.push(paperButton);
+  }
+
+  private createRoundButton(
+    emoji: string, 
+    color: number, 
+    x: number, 
+    y: number, 
+    radius: number,
+    actionType: string
+  ): Container & { onPress?: () => void; actionType?: string } {
+    const button = new Container() as Container & { onPress?: () => void; actionType?: string };
+    button.actionType = actionType;
+    button.x = x;
+    button.y = y;
+    button.eventMode = 'static';
+    button.cursor = 'pointer';
+    
+    // Тень
+    const shadow = new Graphics();
+    shadow.name = 'shadow';
+    shadow.circle(3, 3, radius);
+    shadow.fill(0x000000, 0.3);
+    button.addChild(shadow);
+    
+    // Основной круг
+    const bg = new Graphics();
+    bg.name = 'bg';
+    bg.circle(0, 0, radius);
+    bg.fill(color);
+    bg.stroke({ width: 3, color: 0xffffff });
+    button.addChild(bg);
+    
+    // Внутренний круг (блик)
+    const inner = new Graphics();
+    inner.name = 'inner';
+    inner.circle(-3, -3, radius - 6);
+    inner.fill(0xffffff, 0.15);
+    button.addChild(inner);
+    
+    // Эмодзи
+    const label = new Text({
+      text: emoji,
+      style: {
+        fontSize: 32,
+        fontFamily: 'Arial'
+      }
+    });
+    label.name = 'label';
+    label.anchor.set(0.5);
+    label.x = 0;
+    label.y = 0;
+    button.addChild(label);
+    
+    let isPressed = false;
+    
+    button.on('pointerover', () => {
+      if (!this.isActionLocked && !isPressed) {
+        const bg = button.getChildByName('bg') as Graphics;
+        bg.clear();
+        bg.circle(0, 0, radius);
+        bg.fill(color);
+        bg.stroke({ width: 4, color: 0xffd700 });
+        button.scale.set(1.1);
+      }
+    });
+    
+    button.on('pointerout', () => {
+      if (!this.isActionLocked && !isPressed) {
+        const bg = button.getChildByName('bg') as Graphics;
+        bg.clear();
+        bg.circle(0, 0, radius);
+        bg.fill(color);
+        bg.stroke({ width: 3, color: 0xffffff });
+        button.scale.set(1.0);
+      }
+    });
+    
+    button.on('pointerdown', () => {
+      if (!this.isActionLocked) {
+        isPressed = true;
+        button.scale.set(0.95);
+        const bg = button.getChildByName('bg') as Graphics;
+        bg.clear();
+        bg.circle(0, 0, radius);
+        bg.fill(color);
+        bg.stroke({ width: 3, color: 0xffd700 });
+      }
+    });
+    
+    button.on('pointerup', () => {
+      if (!this.isActionLocked) {
+        isPressed = false;
+        button.scale.set(1.0);
+        const bg = button.getChildByName('bg') as Graphics;
+        bg.clear();
+        bg.circle(0, 0, radius);
+        bg.fill(color);
+        bg.stroke({ width: 3, color: 0xffffff });
+        
+        if (button.onPress) {
+          button.onPress();
+        }
+      }
+    });
+    
+    return button;
+  }
+
+  private lockActionButtons(selectedType?: string): void {
+    this.isActionLocked = true;
+    this.selectedAction = selectedType || null;
+    
+    this.actionButtons.forEach(button => {
+      button.eventMode = 'none';
+      button.cursor = 'default';
+      
+      const bg = button.getChildByName('bg') as Graphics;
+      const radius = 35;
+      let color: number;
+      
+      if (button.actionType === selectedType) {
+        color = 0x2ecc71; // Зелёный для выбранной
+      } else {
+        color = 0x7f8c8d; // Серый для остальных
+      }
+      
+      bg.clear();
+      bg.circle(0, 0, radius);
+      bg.fill(color);
+      bg.stroke({ 
+        width: 3, 
+        color: button.actionType === selectedType ? 0xffd700 : 0x95a5a6 
+      });
+      
+      if (button.actionType !== selectedType) {
+        button.scale.set(0.9);
+        button.alpha = 0.6;
+      } else {
+        button.scale.set(1.05);
+        button.alpha = 1.0;
+      }
+    });
+  }
+
+  private onRock(): void {
+    console.log('✊ Выбран камень!');
+    this.lockActionButtons('rock');
+    this.showActionEffect('КАМЕНЬ!', 0xe74c3c);
+    
+    setTimeout(() => {
+      this.finishTurn();
+    }, 1500);
+  }
+
+  private onScissors(): void {
+    console.log('✌️ Выбраны ножницы!');
+    this.lockActionButtons('scissors');
+    this.showActionEffect('НОЖНИЦЫ!', 0x3498db);
+    
+    setTimeout(() => {
+      this.finishTurn();
+    }, 1500);
+  }
+
+  private onPaper(): void {
+    console.log('🤚 Выбрана бумага!');
+    this.lockActionButtons('paper');
+    this.showActionEffect('БУМАГА!', 0xf1c40f);
+    
+    setTimeout(() => {
+      this.finishTurn();
+    }, 1500);
+  }
+
+  private finishTurn(): void {
+    console.log('⏰ Ход завершён!');
+    this.finishMatch();
+  }
+
+  private showActionEffect(text: string, color: number): void {
+    const effectText = new Text({
+      text: text,
+      style: {
+        fill: color,
+        fontSize: 36,
+        fontFamily: 'Arial',
+        fontWeight: 'bold',
+        stroke: 0xffffff,
+        strokeThickness: 3
+      }
+    });
+    effectText.anchor.set(0.5);
+    effectText.x = 0;
+    effectText.y = -80;
+    effectText.alpha = 1;
+    this.contentContainer.addChild(effectText);
+    
+    let time = 0;
+    const animate = setInterval(() => {
+      time += 0.05;
+      effectText.y -= 2;
+      effectText.alpha -= 0.04;
+      effectText.scale.set(1 + time * 0.3);
+      
+      if (effectText.alpha <= 0) {
+        clearInterval(animate);
+        this.contentContainer.removeChild(effectText);
+        effectText.destroy();
+      }
+    }, 30);
   }
 
   private createImageBorder(centerX: number, y: number, width: number, height: number, color: number): Graphics {
@@ -435,7 +681,6 @@ private async loadGameImages(): Promise<void> {
 
       if (this.matchTimer <= 0) {
         this.stopTimer();
-        //this.finishMatch();
       }
     }, 1000);
   }
@@ -499,7 +744,6 @@ private async loadGameImages(): Promise<void> {
     }
   }
 
-  // Очистка ресурсов при уходе со сцены
   destroy(options?: any): void {
     this.stopTimer();
     
