@@ -20,8 +20,9 @@ export class BootScene extends BaseScene {
             try {
             // Загружаем все необходимые ресурсы
             await Assets.load([
-                { alias: 'gameplay_left', src: 'assets/images/K.jpg' },
-                { alias: 'gameplay_right', src: 'assets/images/K.jpg' },
+                { alias: 'rock', src: 'assets/images/K.jpg' },
+                { alias: 'scissors', src: 'assets/images/N.jpg' },
+                { alias: 'paper', src: 'assets/images/B.jpg' },
                 // другие ресурсы...
             ]);
             

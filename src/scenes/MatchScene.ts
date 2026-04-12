@@ -22,6 +22,25 @@ export class MatchScene extends BaseScene {
   private isActionLocked: boolean = false;
   private selectedAction: string | null = null;
 
+  private playerChoice: string | null = null;
+  private opponentChoice: string | null = null;
+
+  private playerScore: number = 0;
+  private opponentScore: number = 0;
+  private currentRound: number = 1;
+  private readonly MAX_ROUNDS: number = 3;
+  private readonly WIN_SCORE: number = 2; // Победа при 2 выигранных раундах
+
+  private roundHistory: Array<{
+    round: number;
+    playerChoice: string;
+    opponentChoice: string;
+    result: 'win' | 'lose' | 'draw';
+}> = [];
+
+private scoreText!: Text;
+private roundText!: Text;
+
   // Пути к изображениям
   private readonly IMAGE_PATHS = {
     left: 'assets/images/K.jpg',
@@ -281,24 +300,34 @@ export class MatchScene extends BaseScene {
     }
   }
 
-  private async loadGameImages(): Promise<void> {
+  private readonly TEXTURE_ALIASES = {
+    rock: 'rock',
+    scissors: 'scissors',
+    paper: 'paper'
+};
+
+ private async loadGameImages(): Promise<void> {
     try {
-      const texture1 = Assets.cache.get('gameplay_left') as Texture;
-      const texture2 = Assets.cache.get('gameplay_right') as Texture;
-      
-      if (!texture1 || !texture2) {
-        throw new Error('Текстуры не найдены в кэше');
-      }
-      
-      this.gameImage1 = new Sprite(texture1);
-      this.gameImage2 = new Sprite(texture2);
-      
+        // Проверяем наличие всех текстур в кэше
+        const rockTexture = Assets.cache.get('rock') as Texture;
+        const scissorsTexture = Assets.cache.get('scissors') as Texture;
+        const paperTexture = Assets.cache.get('paper') as Texture;
+        
+        if (!rockTexture || !scissorsTexture || !paperTexture) {
+            throw new Error('Текстуры не найдены в кэше');
+        }
+        
+        // Изначально показываем камень для обоих
+        this.gameImage1 = new Sprite(rockTexture);
+        this.gameImage2 = new Sprite(rockTexture);
+        
     } catch (error) {
-      console.error('Ошибка получения текстур из кэша:', error);
-      this.gameImage1 = new Sprite(this.createFallbackTexture('🎮', 0x3498db));
-      this.gameImage2 = new Sprite(this.createFallbackTexture('⚔️', 0xe74c3c));
+        console.error('Ошибка получения текстур из кэша:', error);
+        // Используем fallback с камнем
+        this.gameImage1 = new Sprite(this.createChoiceFallbackTexture('rock'));
+        this.gameImage2 = new Sprite(this.createChoiceFallbackTexture('rock'));
     }
-  }
+}
 
   private createFallbackTexture(emoji: string, color: number): Texture {
     const canvas = document.createElement('canvas');
@@ -328,7 +357,7 @@ export class MatchScene extends BaseScene {
     return Texture.from(canvas);
   }
 
-  private createGameField(): void {
+private createGameField(): void {
     const fieldY = 190;
     const imageWidth = 180;
     const imageHeight = 120;
@@ -336,6 +365,7 @@ export class MatchScene extends BaseScene {
 
     this.isLoading = false;
 
+    // Настраиваем первое изображение (игрок)
     this.gameImage1.anchor.set(0.5);
     this.gameImage1.width = imageWidth;
     this.gameImage1.height = imageHeight;
@@ -352,6 +382,7 @@ export class MatchScene extends BaseScene {
     this.contentContainer.addChild(border1);
     this.contentContainer.addChild(this.gameImage1);
 
+    // Настраиваем второе изображение (соперник)
     this.gameImage2.anchor.set(0.5);
     this.gameImage2.width = imageWidth;
     this.gameImage2.height = imageHeight;
@@ -368,8 +399,17 @@ export class MatchScene extends BaseScene {
     this.contentContainer.addChild(border2);
     this.contentContainer.addChild(this.gameImage2);
 
+    // Счёт и раунд
+    this.createScoreDisplay(fieldY - 30);
+    
+    // Подписи под изображениями
+    this.createImageLabels(fieldY + imageHeight + 5);
+
+    // Индикатор ожидания соперника
+    this.showOpponentWaiting();
+
     // Три круглые кнопки
-    this.createRoundButtons(fieldY + imageHeight + 45);
+    this.createRoundButtons(fieldY + imageHeight + 65);
 
     // Таймер матча
     this.timerText = new Text({
@@ -383,11 +423,475 @@ export class MatchScene extends BaseScene {
     });
     this.timerText.anchor.set(0.5);
     this.timerText.x = 0;
-    this.timerText.y = fieldY + imageHeight + 100;
+    this.timerText.y = fieldY + imageHeight + 120;
     this.contentContainer.addChild(this.timerText);
 
     this.startTimer();
-  }
+}
+
+private createScoreDisplay(y: number): void {
+    // Счёт
+    this.scoreText = new Text({
+        text: `${this.playerScore} : ${this.opponentScore}`,
+        style: {
+            fill: 0xecf0f1,
+            fontSize: 32,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
+    });
+    this.scoreText.anchor.set(0.5);
+    this.scoreText.x = 0;
+    this.scoreText.y = y;
+    this.contentContainer.addChild(this.scoreText);
+    
+    // Раунд
+    this.roundText = new Text({
+        text: `Раунд ${this.currentRound}/${this.MAX_ROUNDS}`,
+        style: {
+            fill: 0xf1c40f,
+            fontSize: 16,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
+    });
+    this.roundText.anchor.set(0.5);
+    this.roundText.x = 0;
+    this.roundText.y = y + 30;
+    this.contentContainer.addChild(this.roundText);
+}
+
+
+
+private showRoundResultPopup(result: 'win' | 'lose' | 'draw'): void {
+    // Затемняем фон
+    const overlay = new Graphics();
+    overlay.name = 'popupOverlay';
+    overlay.rect(-400, -300, 800, 600);
+    overlay.fill(0x000000, 0.7);
+    this.contentContainer.addChild(overlay);
+    
+    // Контейнер popup
+    const popup = new Container();
+    popup.name = 'roundPopup';
+    popup.x = 0;
+    popup.y = 0;
+    this.contentContainer.addChild(popup);
+    
+    // Фон popup
+    const popupBg = new Graphics();
+    popupBg.roundRect(-200, -150, 400, 300, 20);
+    popupBg.fill(0x2c3e50);
+    popupBg.stroke({ width: 3, color: 0x3498db });
+    popup.addChild(popupBg);
+    
+    // Заголовок
+    let titleText: string;
+    let titleColor: number;
+    
+    switch (result) {
+        case 'win':
+            titleText = '🎉 ПОБЕДА!';
+            titleColor = 0x2ecc71;
+            break;
+        case 'lose':
+            titleText = '😢 ПОРАЖЕНИЕ';
+            titleColor = 0xe74c3c;
+            break;
+        case 'draw':
+            titleText = '🤝 НИЧЬЯ!';
+            titleColor = 0xf1c40f;
+            break;
+    }
+    
+    const title = new Text({
+        text: titleText,
+        style: {
+            fill: titleColor,
+            fontSize: 32,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
+    });
+    title.anchor.set(0.5);
+    title.x = 0;
+    title.y = -90;
+    popup.addChild(title);
+    
+    // Выборы
+    const choicesText = new Text({
+        text: `${this.getChoiceEmoji(this.playerChoice!)}  VS  ${this.getChoiceEmoji(this.opponentChoice!)}`,
+        style: {
+            fill: 0xecf0f1,
+            fontSize: 36,
+            fontFamily: 'Arial'
+        }
+    });
+    choicesText.anchor.set(0.5);
+    choicesText.x = 0;
+    choicesText.y = -30;
+    popup.addChild(choicesText);
+    
+    // Текущий счёт (показываем, каким он станет после этого раунда)
+    let newPlayerScore = this.playerScore;
+    let newOpponentScore = this.opponentScore;
+    
+    if (result === 'win') {
+        newPlayerScore++;
+    } else if (result === 'lose') {
+        newOpponentScore++;
+    }
+    
+    const scoreText = new Text({
+        text: `Счёт: ${newPlayerScore} : ${newOpponentScore}`,
+        style: {
+            fill: 0xecf0f1,
+            fontSize: 24,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
+    });
+    scoreText.anchor.set(0.5);
+    scoreText.x = 0;
+    scoreText.y = 20;
+    popup.addChild(scoreText);
+    
+    // Раунд
+    const roundInfo = new Text({
+        text: `Раунд ${this.currentRound}/${this.MAX_ROUNDS} завершён`,
+        style: {
+            fill: 0xbdc3c7,
+            fontSize: 14,
+            fontFamily: 'Arial'
+        }
+    });
+    roundInfo.anchor.set(0.5);
+    roundInfo.x = 0;
+    roundInfo.y = 50;
+    popup.addChild(roundInfo);
+    
+    // Кнопка "Продолжить"
+    const continueButton = this.createPopupButton('ПРОДОЛЖИТЬ', 0, 100);
+    continueButton.onPress = () => {
+        // Закрываем popup
+        this.closeRoundPopup();
+        
+        // Обрабатываем результат раунда
+        this.processRoundResult(result);
+        
+        // Сбрасываем для следующего раунда
+        this.resetForNextRound();
+    };
+    popup.addChild(continueButton);
+    
+    // Анимация появления
+    popup.alpha = 0;
+    popup.scale.set(0.8);
+    
+    let progress = 0;
+    const animate = setInterval(() => {
+        progress += 0.1;
+        popup.alpha = progress;
+        popup.scale.set(0.8 + 0.2 * progress);
+        
+        if (progress >= 1) {
+            clearInterval(animate);
+        }
+    }, 30);
+}
+
+
+
+private createPopupButton(text: string, x: number, y: number): Container & { onPress?: () => void } {
+    const button = new Container() as Container & { onPress?: () => void };
+    button.x = x;
+    button.y = y;
+    button.eventMode = 'static';
+    button.cursor = 'pointer';
+    
+    const bg = new Graphics();
+    bg.roundRect(-90, -25, 180, 50, 25);
+    bg.fill(0x3498db);
+    bg.stroke({ width: 2, color: 0xffffff });
+    button.addChild(bg);
+    
+    const label = new Text({
+        text: text,
+        style: {
+            fill: 0xffffff,
+            fontSize: 18,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
+    });
+    label.anchor.set(0.5);
+    label.x = 0;
+    label.y = 0;
+    button.addChild(label);
+    
+    button.on('pointerover', () => {
+        bg.clear();
+        bg.roundRect(-90, -25, 180, 50, 25);
+        bg.fill(0x2980b9);
+        bg.stroke({ width: 2, color: 0xffd700 });
+        button.scale.set(1.05);
+    });
+    
+    button.on('pointerout', () => {
+        bg.clear();
+        bg.roundRect(-90, -25, 180, 50, 25);
+        bg.fill(0x3498db);
+        bg.stroke({ width: 2, color: 0xffffff });
+        button.scale.set(1.0);
+    });
+    
+    button.on('pointerdown', () => {
+        button.scale.set(0.95);
+    });
+    
+    button.on('pointerup', () => {
+        button.scale.set(1.05);
+        if (button.onPress) {
+            button.onPress();
+        }
+    });
+    
+    return button;
+}
+
+private closeRoundPopup(): void {
+    const overlay = this.contentContainer.getChildByName('popupOverlay');
+    const popup = this.contentContainer.getChildByName('roundPopup');
+    
+    if (overlay) {
+        this.contentContainer.removeChild(overlay);
+        overlay.destroy();
+    }
+    
+    if (popup) {
+        this.contentContainer.removeChild(popup);
+        popup.destroy();
+    }
+}
+
+
+private unlockActionButtons(): void {
+    this.isActionLocked = false;
+    this.selectedAction = null;
+    
+    const colors: Record<string, number> = {
+        'rock': 0xe74c3c,
+        'scissors': 0x3498db,
+        'paper': 0xf1c40f
+    };
+    
+    this.actionButtons.forEach(button => {
+        button.eventMode = 'static';
+        button.cursor = 'pointer';
+        button.scale.set(1.0);
+        button.alpha = 1.0;
+        
+        const bg = button.getChildByName('bg') as Graphics;
+        const color = colors[button.actionType as string] || 0x7f8c8d;
+        const radius = 35;
+        
+        bg.clear();
+        bg.circle(0, 0, radius);
+        bg.fill(color);
+        bg.stroke({ width: 3, color: 0xffffff });
+    });
+}
+
+private resetForNextRound(): void {
+    // Разблокируем кнопки
+    this.unlockActionButtons();
+    
+    // Сбрасываем выборы
+    this.playerChoice = null;
+    this.opponentChoice = null;
+    
+    // Убираем подсветки
+    this.removePlayerHighlight();
+    const opponentGlow = this.contentContainer.getChildByName('opponentGlow');
+    if (opponentGlow) {
+        this.contentContainer.removeChild(opponentGlow);
+        opponentGlow.destroy();
+    }
+    
+    // Возвращаем картинки к камню
+    this.resetImagesToRock();
+    
+    // Показываем индикатор ожидания соперника
+    this.showOpponentWaiting();
+}
+
+// Сброс картинок к камню
+private resetImagesToRock(): void {
+    try {
+        const rockTexture = Assets.cache.get('rock') as Texture;
+        if (rockTexture) {
+            this.gameImage1.texture = rockTexture;
+            this.gameImage2.texture = rockTexture;
+        } else {
+            this.gameImage1.texture = this.createChoiceFallbackTexture('rock');
+            this.gameImage2.texture = this.createChoiceFallbackTexture('rock');
+        }
+    } catch (error) {
+        console.error('Ошибка при сбросе картинок:', error);
+        this.gameImage1.texture = this.createChoiceFallbackTexture('rock');
+        this.gameImage2.texture = this.createChoiceFallbackTexture('rock');
+    }
+}
+
+
+private showOpponentWaiting(): void {
+    const waitingContainer = new Container();
+    waitingContainer.name = 'opponentWaiting';
+    waitingContainer.x = this.gameImage2.x;
+    waitingContainer.y = this.gameImage2.y - 70;
+    this.contentContainer.addChild(waitingContainer);
+    
+    // Вопросительный знак
+    const questionMark = new Text({
+        text: '❓',
+        style: {
+            fontSize: 40,
+            fontFamily: 'Arial'
+        }
+    });
+    questionMark.anchor.set(0.5);
+    questionMark.x = 0;
+    questionMark.y = 0;
+    waitingContainer.addChild(questionMark);
+    
+    // Текст "Ожидание..."
+    const waitingText = new Text({
+        text: 'Ожидание...',
+        style: {
+            fill: 0xe74c3c,
+            fontSize: 14,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
+    });
+    waitingText.anchor.set(0.5);
+    waitingText.x = 0;
+    waitingText.y = 30;
+    waitingContainer.addChild(waitingText);
+    
+    // Анимация пульсации
+    let scale = 1;
+    let growing = true;
+    
+    const pulseInterval = setInterval(() => {
+        if (!waitingContainer.destroyed) {
+            if (growing) {
+                scale += 0.02;
+                if (scale >= 1.2) growing = false;
+            } else {
+                scale -= 0.02;
+                if (scale <= 0.8) growing = true;
+            }
+            waitingContainer.scale.set(scale);
+        }
+    }, 50);
+    
+    (waitingContainer as any).pulseInterval = pulseInterval;
+}
+
+private hideOpponentWaiting(): void {
+    const waitingContainer = this.contentContainer.getChildByName('opponentWaiting');
+    if (waitingContainer) {
+        // Очищаем интервал анимации
+        if ((waitingContainer as any).pulseInterval) {
+            clearInterval((waitingContainer as any).pulseInterval);
+        }
+        
+        this.contentContainer.removeChild(waitingContainer);
+        waitingContainer.destroy({ children: true });
+    }
+}
+
+private createImageLabels(y: number): void {
+    // Подпись "ВЫ"
+    const playerLabel = new Text({
+        text: 'ВЫ',
+        style: {
+            fill: 0x3498db,
+            fontSize: 16,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
+    });
+    playerLabel.anchor.set(0.5);
+    playerLabel.x = this.gameImage1.x;
+    playerLabel.y = y;
+    this.contentContainer.addChild(playerLabel);
+    
+    // Подпись "СОПЕРНИК"
+    const opponentLabel = new Text({
+        text: 'СОПЕРНИК',
+        style: {
+            fill: 0xe74c3c,
+            fontSize: 16,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
+    });
+    opponentLabel.anchor.set(0.5);
+    opponentLabel.x = this.gameImage2.x;
+    opponentLabel.y = y;
+    this.contentContainer.addChild(opponentLabel);
+}
+
+
+private createChoiceFallbackTexture(choice: string): Texture {
+    const canvas = document.createElement('canvas');
+    canvas.width = 400;
+    canvas.height = 300;
+    const ctx = canvas.getContext('2d')!;
+    
+    // Цвета для разных выборов
+    const colors: Record<string, number> = {
+        'rock': 0xe74c3c,      // Красный для камня
+        'scissors': 0x3498db,  // Синий для ножниц
+        'paper': 0xf1c40f      // Жёлтый для бумаги
+    };
+    
+    const emojis: Record<string, string> = {
+        'rock': '✊',
+        'scissors': '✌️',
+        'paper': '🤚'
+    };
+    
+    const color = colors[choice] || 0x7f8c8d;
+    const emoji = emojis[choice] || '❓';
+    
+    // Фон
+    ctx.fillStyle = '#' + color.toString(16).padStart(6, '0');
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Градиент
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Рамка
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
+    
+    // Эмодзи
+    ctx.font = '80px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(emoji, canvas.width / 2, canvas.height / 2);
+    
+    return Texture.from(canvas);
+}
 
   private createRoundButtons(y: number): void {
     const buttonRadius = 35;
@@ -401,7 +905,7 @@ export class MatchScene extends BaseScene {
     // Кнопка 1 (Камень)
     const rockButton = this.createRoundButton(
       '✊',
-      0xe74c3c,
+      0x3498db,
       -buttonRadius * 2 - buttonGap,
       0,
       buttonRadius,
@@ -437,7 +941,7 @@ export class MatchScene extends BaseScene {
     // Кнопка 3 (Бумага)
     const paperButton = this.createRoundButton(
       '🤚',
-      0xf1c40f,
+      0x3498db,
       buttonRadius * 2 + buttonGap,
       0,
       buttonRadius,
@@ -595,42 +1099,339 @@ export class MatchScene extends BaseScene {
     });
   }
 
-  private onRock(): void {
+// Обновите метод onRock
+private onRock(): void {
     console.log('✊ Выбран камень!');
+    this.playerChoice = 'rock';
     this.lockActionButtons('rock');
     this.showActionEffect('КАМЕНЬ!', 0xe74c3c);
     
-    setTimeout(() => {
-      this.finishTurn();
-    }, 1500);
-  }
+    // Картинка игрока уже камень, но можно добавить эффект подтверждения
+    this.highlightPlayerChoice();
+    
+    // Ход соперника
+    this.opponentTurn();
+}
 
-  private onScissors(): void {
+// Обновите метод onScissors
+private onScissors(): void {
     console.log('✌️ Выбраны ножницы!');
+    this.playerChoice = 'scissors';
     this.lockActionButtons('scissors');
     this.showActionEffect('НОЖНИЦЫ!', 0x3498db);
     
-    setTimeout(() => {
-      this.finishTurn();
-    }, 1500);
-  }
+    // Обновляем картинку игрока
+    this.updatePlayerImage('scissors');
+    
+    // Ход соперника
+    this.opponentTurn();
+}
 
-  private onPaper(): void {
+// Обновите метод onPaper
+private onPaper(): void {
     console.log('🤚 Выбрана бумага!');
+    this.playerChoice = 'paper';
     this.lockActionButtons('paper');
     this.showActionEffect('БУМАГА!', 0xf1c40f);
     
+    // Обновляем картинку игрока
+    this.updatePlayerImage('paper');
+    
+    // Ход соперника
+    this.opponentTurn();
+}
+
+private updatePlayerImage(choice: string): void {
+    try {
+        const texture = Assets.cache.get(choice) as Texture;
+        if (texture) {
+            this.gameImage1.texture = texture;
+            // Добавляем подсветку после смены картинки
+            this.highlightPlayerChoice();
+        } else {
+            this.gameImage1.texture = this.createChoiceFallbackTexture(choice);
+            this.highlightPlayerChoice();
+        }
+    } catch (error) {
+        console.error('Ошибка при обновлении картинки игрока:', error);
+        this.gameImage1.texture = this.createChoiceFallbackTexture(choice);
+        this.highlightPlayerChoice();
+    }
+}
+
+private highlightPlayerChoice(): void {
+    // Добавляем эффект свечения вокруг картинки игрока
+    const glow = new Graphics();
+    glow.name = 'playerGlow';
+    glow.circle(this.gameImage1.x, this.gameImage1.y, 75);
+    glow.stroke({ width: 4, color: 0xffd700 });
+    glow.fill(0xffd700, 0.1);
+    this.contentContainer.addChild(glow);
+    
+    // Анимация свечения
+    let alpha = 0.1;
+    let increasing = true;
+    
+    const glowInterval = setInterval(() => {
+        if (!glow.destroyed) {
+            if (increasing) {
+                alpha += 0.02;
+                if (alpha >= 0.3) increasing = false;
+            } else {
+                alpha -= 0.02;
+                if (alpha <= 0.1) increasing = true;
+            }
+            glow.clear();
+            glow.circle(this.gameImage1.x, this.gameImage1.y, 75);
+            glow.stroke({ width: 4, color: 0xffd700 });
+            glow.fill(0xffd700, alpha);
+        }
+    }, 50);
+    
+    (glow as any).glowInterval = glowInterval;
+}
+
+private removePlayerHighlight(): void {
+    const glow = this.contentContainer.getChildByName('playerGlow');
+    if (glow) {
+        if ((glow as any).glowInterval) {
+            clearInterval((glow as any).glowInterval);
+        }
+        this.contentContainer.removeChild(glow);
+        glow.destroy();
+    }
+}
+
+private updateOpponentImage(choice: string): void {
+    try {
+        const texture = Assets.cache.get(choice) as Texture;
+        if (texture) {
+            this.gameImage2.texture = texture;
+        } else {
+            this.gameImage2.texture = this.createChoiceFallbackTexture(choice);
+        }
+        
+        // Добавляем эффект появления выбора соперника
+        this.highlightOpponentChoice();
+        
+    } catch (error) {
+        console.error('Ошибка при обновлении картинки соперника:', error);
+        this.gameImage2.texture = this.createChoiceFallbackTexture(choice);
+        this.highlightOpponentChoice();
+    }
+}
+
+private highlightOpponentChoice(): void {
+    const glow = new Graphics();
+    glow.name = 'opponentGlow';
+    glow.circle(this.gameImage2.x, this.gameImage2.y, 75);
+    glow.stroke({ width: 4, color: 0xe74c3c });
+    glow.fill(0xe74c3c, 0.1);
+    this.contentContainer.addChild(glow);
+    
+    // Анимация
+    let alpha = 0.1;
+    let increasing = true;
+    
+    const glowInterval = setInterval(() => {
+        if (!glow.destroyed) {
+            if (increasing) {
+                alpha += 0.03;
+                if (alpha >= 0.4) increasing = false;
+            } else {
+                alpha -= 0.03;
+                if (alpha <= 0.1) increasing = true;
+            }
+            glow.clear();
+            glow.circle(this.gameImage2.x, this.gameImage2.y, 75);
+            glow.stroke({ width: 4, color: 0xe74c3c });
+            glow.fill(0xe74c3c, alpha);
+        }
+    }, 50);
+    
+    (glow as any).glowInterval = glowInterval;
+    
+    // Удаляем подсветку через 2 секунды
     setTimeout(() => {
-      this.finishTurn();
+        const glow = this.contentContainer.getChildByName('opponentGlow');
+        if (glow) {
+            if ((glow as any).glowInterval) {
+                clearInterval((glow as any).glowInterval);
+            }
+            this.contentContainer.removeChild(glow);
+            glow.destroy();
+        }
+    }, 2000);
+}
+
+
+private opponentTurn(): void {
+    // Убираем подсветку игрока
+    this.removePlayerHighlight();
+    
+    // Убираем индикатор ожидания соперника
+    this.hideOpponentWaiting();
+    
+    // Задержка перед ходом соперника (имитация размышления)
+    setTimeout(() => {
+        // Генерируем случайный выбор соперника
+        this.opponentChoice = this.getRandomChoice();
+        console.log(`🤖 Соперник выбрал: ${this.getChoiceName(this.opponentChoice)}`);
+        
+        // Обновляем картинку соперника
+        this.updateOpponentImage(this.opponentChoice);
+        
+        // Показываем выбор соперника
+        this.showOpponentChoice(this.opponentChoice);
+        
+        // Определяем победителя
+        const result = this.determineWinner(this.playerChoice!, this.opponentChoice);
+        
+        // Обновляем счёт для проверки
+        let newPlayerScore = this.playerScore;
+        let newOpponentScore = this.opponentScore;
+        
+        if (result === 'win') {
+            newPlayerScore++;
+        } else if (result === 'lose') {
+            newOpponentScore++;
+        }
+        
+        // Проверяем, будет ли это решающий раунд
+        const isMatchPoint = (newPlayerScore >= this.WIN_SCORE || newOpponentScore >= this.WIN_SCORE);
+        
+        // Показываем результат
+        setTimeout(() => {
+            if (isMatchPoint) {
+                // Решающий раунд - сразу обрабатываем и переходим
+                this.processRoundResult(result);
+            } else {
+                // Обычный раунд - показываем popup
+                this.showRoundResultPopup(result);
+            }
+        }, 1000);
+        
     }, 1500);
-  }
+}
 
-  private finishTurn(): void {
-    console.log('⏰ Ход завершён!');
-    this.finishMatch();
-  }
+// Метод генерации случайного выбора соперника
+private getRandomChoice(): string {
+    const choices = ['rock', 'scissors', 'paper'];
+    const randomIndex = Math.floor(Math.random() * choices.length);
+    return choices[randomIndex];
+}
 
-  private showActionEffect(text: string, color: number): void {
+// Метод получения читаемого названия выбора
+private getChoiceName(choice: string): string {
+    const names: Record<string, string> = {
+        'rock': 'Камень',
+        'scissors': 'Ножницы',
+        'paper': 'Бумага'
+    };
+    return names[choice] || choice;
+}
+
+// Метод получения эмодзи для выбора
+private getChoiceEmoji(choice: string): string {
+    const emojis: Record<string, string> = {
+        'rock': '✊',
+        'scissors': '✌️',
+        'paper': '🤚'
+    };
+    return emojis[choice] || '❓';
+}
+
+// Метод определения победителя
+private determineWinner(playerChoice: string, opponentChoice: string): 'win' | 'lose' | 'draw' {
+    if (playerChoice === opponentChoice) {
+        return 'draw';
+    }
+    
+    const winConditions: Record<string, string> = {
+        'rock': 'scissors',     // Камень побеждает ножницы
+        'scissors': 'paper',    // Ножницы побеждают бумагу
+        'paper': 'rock'         // Бумага побеждает камень
+    };
+    
+    if (winConditions[playerChoice] === opponentChoice) {
+        return 'win';
+    } else {
+        return 'lose';
+    }
+}
+
+// Метод отображения выбора соперника
+private showOpponentChoice(choice: string): void {
+    const choiceEmoji = this.getChoiceEmoji(choice);
+    const choiceName = this.getChoiceName(choice);
+    
+    // Текст с выбором соперника
+    const opponentChoiceText = new Text({
+        text: `🤖 ${choiceEmoji} ${choiceName}`,
+        style: {
+            fill: 0xe74c3c,
+            fontSize: 24,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
+    });
+    opponentChoiceText.anchor.set(0.5);
+    opponentChoiceText.x = 0;
+    opponentChoiceText.y = -120;
+    opponentChoiceText.alpha = 0;
+    this.contentContainer.addChild(opponentChoiceText);
+    
+    // Анимация появления
+    let alpha = 0;
+    const animate = setInterval(() => {
+        alpha += 0.1;
+        opponentChoiceText.alpha = alpha;
+        opponentChoiceText.scale.set(1 + (1 - alpha) * 0.5);
+        
+        if (alpha >= 1) {
+            clearInterval(animate);
+            
+            // Удаляем через 2 секунды
+            setTimeout(() => {
+                this.contentContainer.removeChild(opponentChoiceText);
+                opponentChoiceText.destroy();
+            }, 2000);
+        }
+    }, 50);
+}
+
+private processRoundResult(result: 'win' | 'lose' | 'draw'): void {
+    // Обновляем счёт
+    if (result === 'win') {
+        this.playerScore++;
+    } else if (result === 'lose') {
+        this.opponentScore++;
+    }
+    
+    // Сохраняем историю раунда
+    this.roundHistory.push({
+        round: this.currentRound,
+        playerChoice: this.playerChoice!,
+        opponentChoice: this.opponentChoice!,
+        result: result
+    });
+    
+    // Обновляем отображение счёта
+    this.scoreText.text = `${this.playerScore} : ${this.opponentScore}`;
+    
+    // Проверяем, не закончился ли матч
+    if (this.playerScore >= this.WIN_SCORE || this.opponentScore >= this.WIN_SCORE) {
+        // Матч завершён - сразу переходим на ResultsScene
+        this.stopTimer();
+        this.finishMatch();
+    } else {
+        // Следующий раунд
+        this.currentRound++;
+        this.roundText.text = `Раунд ${this.currentRound}/${this.MAX_ROUNDS}`;
+    }
+}
+
+private showActionEffect(text: string, color: number): void {
     const effectText = new Text({
       text: text,
       style: {
@@ -696,41 +1497,28 @@ export class MatchScene extends BaseScene {
     console.log('🎮 Начало матча!');
   }
 
-  private finishMatch(): void {
+private finishMatch(): void {
     console.log('⏰ Матч завершен!');
     
-    const result = this.generateMatchResult();
+    const isWinner = this.playerScore > this.opponentScore;
+    
+    const result = {
+        winner: isWinner ? 'ВЫ' : 'Player_123',
+        score: `${this.playerScore}-${this.opponentScore}`,
+        prize: isWinner ? this.tournamentData.prize : '0 ₽',
+        players: [
+            { name: 'ВЫ', score: this.playerScore, isWinner: isWinner },
+            { name: 'Player_123', score: this.opponentScore, isWinner: !isWinner }
+        ],
+        roundHistory: this.roundHistory
+    };
     
     this.emit('change-scene', 'ResultsScene', {
-      tournament: this.tournamentData,
-      result: result
+        tournament: this.tournamentData,
+        result: result
     });
-  }
+}
 
-  private generateMatchResult(): any {
-    const results = [
-      {
-        winner: 'ВЫ',
-        score: '2-1',
-        prize: this.tournamentData.prize,
-        players: [
-          { name: 'ВЫ', score: 2, isWinner: true },
-          { name: 'Player_123', score: 1, isWinner: false }
-        ]
-      },
-      {
-        winner: 'Player_123',
-        score: '0-2',
-        prize: '0 ₽',
-        players: [
-          { name: 'ВЫ', score: 0, isWinner: false },
-          { name: 'Player_123', score: 2, isWinner: true }
-        ]
-      }
-    ];
-    
-    return results[Math.floor(Math.random() * results.length)];
-  }
 
   resize(width: number, height: number): void {
     this.background.clear();
