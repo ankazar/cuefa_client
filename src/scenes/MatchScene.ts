@@ -28,7 +28,6 @@ export class MatchScene extends BaseScene {
   private playerScore: number = 0;
   private opponentScore: number = 0;
   private currentRound: number = 1;
-  private readonly MAX_ROUNDS: number = 3;
   private readonly WIN_SCORE: number = 2; // Победа при 2 выигранных раундах
 
   private player2Card!: Container;
@@ -64,7 +63,6 @@ async init(tournamentData?: any): Promise<void> {
     this.createTitle();
     this.createContentContainer();
     this.createPlayers();        // Создаёт карточки
-    this.createMatchInfo();
     
     // Показываем индикатор загрузки
     this.showLoadingIndicator();
@@ -91,7 +89,7 @@ async init(tournamentData?: any): Promise<void> {
 
   private getDefaultTournamentData(): any {
     return {
-      name: 'Ежедневный турнир',
+      name: 'Ежедневный',
       prize: '1,000 ₽',
       entry: 'Бесплатно'
     };
@@ -137,20 +135,8 @@ async init(tournamentData?: any): Promise<void> {
     const player1Card = this.createPlayerCard('ВЫ', '1450', -150, playersY, 0x3498db);
     this.contentContainer.addChild(player1Card);
 
-    // VS текст
-    const vsText = new Text({
-        text: 'VS',
-        style: {
-            fill: 0xe74c3c,
-            fontSize: 32,
-            fontFamily: 'Arial',
-            fontWeight: 'bold'
-        }
-    });
-    vsText.anchor.set(0.5);
-    vsText.x = 0;
-    vsText.y = playersY + 40;
-    this.contentContainer.addChild(vsText);
+    // Счёт и раунд вместо VS
+    this.createScoreDisplay(playersY + 40);
 
     // Игрок 2 (противник) - сохраняем ссылки на элементы
     this.player2Card = this.createPlayerCard('Поиск...', '???', 150, playersY, 0xe74c3c);
@@ -437,37 +423,6 @@ private setButtonsActiveState(): void {
     return card;
   }
 
-  private createMatchInfo(): void {
-    const infoY = 140;
-
-    const tournamentText = new Text({
-      text: this.tournamentData.name,
-      style: {
-        fill: 0xbdc3c7,
-        fontSize: 16,
-        fontFamily: 'Arial'
-      }
-    });
-    tournamentText.anchor.set(0.5);
-    tournamentText.x = 0;
-    tournamentText.y = infoY;
-    this.contentContainer.addChild(tournamentText);
-
-    const prizeText = new Text({
-      text: `🏆 Приз: ${this.tournamentData.prize}`,
-      style: {
-        fill: 0xf1c40f,
-        fontSize: 14,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
-    });
-    prizeText.anchor.set(0.5);
-    prizeText.x = 0;
-    prizeText.y = infoY + 25;
-    this.contentContainer.addChild(prizeText);
-  }
-
   private showLoadingIndicator(): void {
     const fieldY = 190;
     
@@ -645,67 +600,59 @@ private createGameField(): void {
     
     this.contentContainer.addChild(this.border2);
     this.contentContainer.addChild(this.gameImage2);
-
-    // Счёт и раунд
-    this.createScoreDisplay(fieldY - 30);
-    
+   
     // Подписи под изображениями
     this.createImageLabels(fieldY + imageHeight + 5);
 
-    // Индикатор ожидания соперника
-    this.showOpponentWaiting();
-
     // Три круглые кнопки
     this.createRoundButtons(fieldY + imageHeight + 65);
-
-    // Таймер матча
-    this.timerText = new Text({
-      text: `Матч через: ${this.matchTimer} сек`,
-      style: {
-        fill: 0xe74c3c,
-        fontSize: 16,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
-    });
-    this.timerText.anchor.set(0.5);
-    this.timerText.x = 0;
-    this.timerText.y = fieldY + imageHeight + 120;
-    this.contentContainer.addChild(this.timerText);
 
     this.startTimer();
 }
 
 private createScoreDisplay(y: number): void {
+    // Контейнер для счёта и раунда
+    const scoreContainer = new Container();
+    scoreContainer.x = 0;
+    scoreContainer.y = y;
+    this.contentContainer.addChild(scoreContainer);
+    
+    // Фон для счёта
+    const scoreBg = new Graphics();
+    scoreBg.roundRect(-60, -25, 120, 50, 10);
+    scoreBg.fill(0x2c3e50);
+    scoreBg.stroke({ width: 2, color: 0xf1c40f });
+    scoreContainer.addChild(scoreBg);
+    
     // Счёт
     this.scoreText = new Text({
         text: `${this.playerScore} : ${this.opponentScore}`,
         style: {
             fill: 0xecf0f1,
-            fontSize: 32,
+            fontSize: 28,
             fontFamily: 'Arial',
             fontWeight: 'bold'
         }
     });
     this.scoreText.anchor.set(0.5);
     this.scoreText.x = 0;
-    this.scoreText.y = y;
-    this.contentContainer.addChild(this.scoreText);
+    this.scoreText.y = -5;
+    scoreContainer.addChild(this.scoreText);
     
-    // Раунд
+    // Раунд (под счётом)
     this.roundText = new Text({
-        text: `Раунд ${this.currentRound}/${this.MAX_ROUNDS}`,
+        text: `Раунд ${this.currentRound}`,
         style: {
             fill: 0xf1c40f,
-            fontSize: 16,
+            fontSize: 14,
             fontFamily: 'Arial',
             fontWeight: 'bold'
         }
     });
     this.roundText.anchor.set(0.5);
     this.roundText.x = 0;
-    this.roundText.y = y + 30;
-    this.contentContainer.addChild(this.roundText);
+    this.roundText.y = 18;
+    scoreContainer.addChild(this.roundText);
 }
 
 
@@ -805,7 +752,7 @@ private showRoundResultPopup(result: 'win' | 'lose' | 'draw'): void {
     
     // Раунд
     const roundInfo = new Text({
-        text: `Раунд ${this.currentRound}/${this.MAX_ROUNDS} завершён`,
+        text: `Раунд ${this.currentRound} завершён`,
         style: {
             fill: 0xbdc3c7,
             fontSize: 14,
@@ -988,62 +935,6 @@ private resetImagesToRock(): void {
         this.gameImage1.texture = this.createChoiceFallbackTexture('rock');
         this.gameImage2.texture = this.createChoiceFallbackTexture('rock');
     }
-}
-
-
-private showOpponentWaiting(): void {
-    const waitingContainer = new Container();
-    waitingContainer.name = 'opponentWaiting';
-    waitingContainer.x = this.gameImage2.x;
-    waitingContainer.y = this.gameImage2.y - 70;
-    this.contentContainer.addChild(waitingContainer);
-    
-    // Вопросительный знак
-    const questionMark = new Text({
-        text: '❓',
-        style: {
-            fontSize: 40,
-            fontFamily: 'Arial'
-        }
-    });
-    questionMark.anchor.set(0.5);
-    questionMark.x = 0;
-    questionMark.y = 0;
-    waitingContainer.addChild(questionMark);
-    
-    // Текст "Ожидание..."
-    const waitingText = new Text({
-        text: 'Ожидание...',
-        style: {
-            fill: 0xe74c3c,
-            fontSize: 14,
-            fontFamily: 'Arial',
-            fontWeight: 'bold'
-        }
-    });
-    waitingText.anchor.set(0.5);
-    waitingText.x = 0;
-    waitingText.y = 30;
-    waitingContainer.addChild(waitingText);
-    
-    // Анимация пульсации
-    let scale = 1;
-    let growing = true;
-    
-    const pulseInterval = setInterval(() => {
-        if (!waitingContainer.destroyed) {
-            if (growing) {
-                scale += 0.02;
-                if (scale >= 1.2) growing = false;
-            } else {
-                scale -= 0.02;
-                if (scale <= 0.8) growing = true;
-            }
-            waitingContainer.scale.set(scale);
-        }
-    }, 50);
-    
-    (waitingContainer as any).pulseInterval = pulseInterval;
 }
 
 private hideOpponentWaiting(): void {
@@ -1674,7 +1565,7 @@ private processRoundResult(result: 'win' | 'lose' | 'draw'): void {
     } else {
         // Следующий раунд
         this.currentRound++;
-        this.roundText.text = `Раунд ${this.currentRound}/${this.MAX_ROUNDS}`;
+        this.roundText.text = `Раунд ${this.currentRound}`;
     }
 }
 
