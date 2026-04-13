@@ -269,7 +269,7 @@ export class TournamentInfoScene extends BaseScene {
     console.log(`✅ Игрок присоединился к турниру: ${this.tournamentData.name}`);
     
     // Переход на сцену поиска соперника
-    this.emit('change-scene', 'FindOpponentScene', this.tournamentData);
+    this.emit('change-scene', 'MatchScene', this.tournamentData);
   }
 
   private spectateTournament(): void {

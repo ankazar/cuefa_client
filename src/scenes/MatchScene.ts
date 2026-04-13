@@ -31,6 +31,15 @@ export class MatchScene extends BaseScene {
   private readonly MAX_ROUNDS: number = 3;
   private readonly WIN_SCORE: number = 2; // Победа при 2 выигранных раундах
 
+  private player2Card!: Container;
+  private player2NameText!: Text;
+  private player2RatingText!: Text;
+  private player2StatusText!: Text;
+  private searchInterval?: NodeJS.Timeout;
+  private isSearching: boolean = false;
+  private opponentData: any = null;
+  private border2!: Graphics;
+
   private roundHistory: Array<{
     round: number;
     playerChoice: string;
@@ -47,14 +56,14 @@ private roundText!: Text;
     right: 'assets/images/K.jpg'
   };
 
-  async init(tournamentData?: any): Promise<void> {
+async init(tournamentData?: any): Promise<void> {
     console.log('🎮 MatchScene init вызван с данными:', tournamentData);
     this.tournamentData = tournamentData || this.getDefaultTournamentData();
     
     this.createBackground();
     this.createTitle();
     this.createContentContainer();
-    this.createPlayers();
+    this.createPlayers();        // Создаёт карточки
     this.createMatchInfo();
     
     // Показываем индикатор загрузки
@@ -63,12 +72,22 @@ private roundText!: Text;
     // Загружаем изображения
     await this.loadGameImages();
     
-    // Скрываем индикатор и показываем игровое поле
+    // Скрываем индикатор
     this.hideLoadingIndicator();
+    
+    // СРАЗУ показываем игровое поле
     this.createGameField();
     
-    this.startMatch();
-  }
+    // Блокируем кнопки на время поиска
+    this.isActionLocked = true;
+    this.setButtonsWaitingState();
+    
+    // Запускаем поиск соперника в фоне
+    this.startSearching();
+    
+    // Ждём соперника (не блокируя интерфейс)
+    this.waitForOpponent();
+}
 
   private getDefaultTournamentData(): any {
     return {
@@ -120,23 +139,246 @@ private roundText!: Text;
 
     // VS текст
     const vsText = new Text({
-      text: 'VS',
-      style: {
-        fill: 0xe74c3c,
-        fontSize: 32,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
+        text: 'VS',
+        style: {
+            fill: 0xe74c3c,
+            fontSize: 32,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
     });
     vsText.anchor.set(0.5);
     vsText.x = 0;
     vsText.y = playersY + 40;
     this.contentContainer.addChild(vsText);
 
-    // Игрок 2 (противник)
-    const player2Card = this.createPlayerCard('Player_123', '1420', 150, playersY, 0xe74c3c);
-    this.contentContainer.addChild(player2Card);
-  }
+    // Игрок 2 (противник) - сохраняем ссылки на элементы
+    this.player2Card = this.createPlayerCard('Поиск...', '???', 150, playersY, 0xe74c3c);
+    this.contentContainer.addChild(this.player2Card);
+    
+    // Сохраняем ссылки на текстовые элементы
+    this.player2NameText = this.player2Card.children.find(c => c instanceof Text && c.y === 30) as Text;
+    this.player2RatingText = this.player2Card.children.find(c => c instanceof Text && c.y === 60) as Text;
+    this.player2StatusText = this.player2Card.children.find(c => c instanceof Text && c.y === 85) as Text;
+    
+    // Запускаем поиск соперника
+    this.startSearching();
+}
+
+// НОВЫЙ МЕТОД: Запуск анимации поиска в карточке
+private startSearching(): void {
+    this.isSearching = true;
+    let dotCount = 0;
+    
+    // Обновляем статус в карточке
+    if (this.player2StatusText) {
+        this.player2StatusText.text = 'Поиск';
+        this.player2StatusText.style.fill = 0xf1c40f;
+    }
+    
+    // Анимация точек в имени соперника
+    this.searchInterval = setInterval(() => {
+        if (!this.isSearching) return;
+        
+        dotCount = (dotCount + 1) % 5;
+        const dots = '.'.repeat(dotCount);
+        
+        if (this.player2NameText && !this.player2NameText.destroyed) {
+            this.player2NameText.text = `Поиск${dots}`;
+        }
+    }, 400);
+}
+
+// НОВЫЙ МЕТОД: Получение данных соперника (имитация API запроса)
+private async fetchOpponentData(): Promise<any> {
+    console.log('📡 Запрос данных соперника...');
+    
+    // Имитация задержки сети
+    await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+    
+    // Имитация ответа от сервера
+    const opponents = [
+        { name: 'DragonSlayer', rating: 1580 },
+        { name: 'ShadowMaster', rating: 1420 },
+        { name: 'NightWolf', rating: 1650 },
+        { name: 'StormBreaker', rating: 1350 },
+        { name: 'PhoenixRider', rating: 1720 },
+        { name: 'IceQueen', rating: 1480 }
+    ];
+    
+    // Случайный выбор соперника
+    const opponent = opponents[Math.floor(Math.random() * opponents.length)];
+    
+    console.log('✅ Данные соперника получены:', opponent);
+    return opponent;
+}
+
+// НОВЫЙ МЕТОД: Обработка получения соперника
+private async onOpponentFound(): Promise<void> {
+    try {
+        // Получаем данные соперника
+        this.opponentData = await this.fetchOpponentData();
+        
+        // Останавливаем поиск
+        this.isSearching = false;
+        
+        if (this.searchInterval) {
+            clearInterval(this.searchInterval);
+            this.searchInterval = undefined;
+        }
+        
+        // Обновляем карточку соперника
+        this.updateOpponentCard(this.opponentData);
+        
+        // Показываем уведомление
+        this.showOpponentReadyNotification();
+        
+    } catch (error) {
+        console.error('❌ Ошибка получения соперника:', error);
+        
+        // В случае ошибки используем данные по умолчанию
+        this.opponentData = { name: 'Player_123', rating: 1420 };
+        this.updateOpponentCard(this.opponentData);
+    }
+}
+
+// НОВЫЙ МЕТОД: Уведомление о готовности соперника
+private showOpponentReadyNotification(): void {
+    // Текст уведомления
+    const notification = new Text({
+        text: '✅ СОПЕРНИК ГОТОВ!',
+        style: {
+            fill: 0x2ecc71,
+            fontSize: 20,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
+    });
+    notification.anchor.set(0.5);
+    notification.x = 0;
+    notification.y = -180;
+    notification.alpha = 0;
+    this.contentContainer.addChild(notification);
+    
+    // Анимация появления и исчезновения
+    let alpha = 0;
+    const animate = setInterval(() => {
+        if (alpha < 1) {
+            alpha += 0.1;
+            notification.alpha = alpha;
+            notification.y -= 1;
+        } else {
+            clearInterval(animate);
+            setTimeout(() => {
+                const fadeOut = setInterval(() => {
+                    alpha -= 0.1;
+                    notification.alpha = alpha;
+                    notification.y -= 1;
+                    if (alpha <= 0) {
+                        clearInterval(fadeOut);
+                        this.contentContainer.removeChild(notification);
+                        notification.destroy();
+                    }
+                }, 50);
+            }, 1500);
+        }
+    }, 50);
+}
+
+// НОВЫЙ МЕТОД: Обновление карточки соперника
+private updateOpponentCard(data: { name: string; rating: number }): void {
+    if (this.player2NameText) {
+        this.player2NameText.text = data.name;
+        this.player2NameText.style.fill = 0xecf0f1;
+    }
+    
+    if (this.player2RatingText) {
+        this.player2RatingText.text = `⭐ ${data.rating}`;
+        this.player2RatingText.style.fill = 0xf1c40f;
+    }
+    
+    if (this.player2StatusText) {
+        this.player2StatusText.text = 'Готов';
+        this.player2StatusText.style.fill = 0x2ecc71;
+    }
+    
+    // Меняем цвет обводки на зелёный
+    const bg = this.player2Card.children[0] as Graphics;
+    if (bg) {
+        bg.clear();
+        bg.roundRect(-70, 0, 140, 120, 10);
+        bg.fill(0x2c3e50);
+        bg.stroke({ width: 3, color: 0x2ecc71 });
+    }
+    
+    // ВОССТАНАВЛИВАЕМ НЕПРОЗРАЧНОСТЬ ПРАВОГО ИЗОБРАЖЕНИЯ И РАМКИ
+    if (this.gameImage2) {
+        this.gameImage2.alpha = 1.0;
+    }
+    
+    if (this.border2) {
+        this.border2.alpha = 1.0;
+    }
+    
+    // Скрываем индикатор ожидания
+    this.hideOpponentWaiting();
+}
+
+// НОВЫЙ МЕТОД: Ожидание соперника
+private async waitForOpponent(): Promise<void> {
+    console.log('⏳ Поиск соперника в фоне...');
+    
+    // Получаем соперника
+    await this.onOpponentFound();
+    
+    // Разблокируем кнопки
+    this.isActionLocked = false;
+    this.setButtonsActiveState();
+    
+    console.log('✅ Соперник готов, кнопки активированы!');
+}
+
+// НОВЫЙ МЕТОД: Установка состояния ожидания для кнопок
+private setButtonsWaitingState(): void {
+    this.actionButtons.forEach(button => {
+        button.eventMode = 'none';
+        button.cursor = 'default';
+        button.alpha = 0.5;
+        
+        const bg = button.getChildByName('bg') as Graphics;
+        if (bg) {
+            bg.clear();
+            bg.circle(0, 0, 35);
+            bg.fill(0x7f8c8d);
+            bg.stroke({ width: 3, color: 0x95a5a6 });
+        }
+    });
+}
+
+// НОВЫЙ МЕТОД: Активация кнопок после нахождения соперника
+private setButtonsActiveState(): void {
+    const colors: Record<string, number> = {
+        'rock': 0xe74c3c,
+        'scissors': 0x3498db,
+        'paper': 0xf1c40f
+    };
+    
+    this.actionButtons.forEach(button => {
+        button.eventMode = 'static';
+        button.cursor = 'pointer';
+        button.alpha = 1.0;
+        
+        const bg = button.getChildByName('bg') as Graphics;
+        const color = colors[button.actionType as string] || 0xe74c3c;
+        
+        if (bg) {
+            bg.clear();
+            bg.circle(0, 0, 35);
+            bg.fill(color);
+            bg.stroke({ width: 3, color: 0xffffff });
+        }
+    });
+}
 
   private createPlayerCard(name: string, rating: string, x: number, y: number, color: number): Container {
     const card = new Container();
@@ -389,14 +631,19 @@ private createGameField(): void {
     this.gameImage2.x = imageWidth / 2 + gap / 2;
     this.gameImage2.y = fieldY + imageHeight / 2;
     
-    const border2 = this.createImageBorder(
+    // ДЕЛАЕМ ПРАВОЕ ИЗОБРАЖЕНИЕ ПОЛУПРОЗРАЧНЫМ
+    this.gameImage2.alpha = 0.4;
+    
+    this.border2 = this.createImageBorder(
       this.gameImage2.x, 
       fieldY, 
       imageWidth, 
       imageHeight,
       0xe74c3c
     );
-    this.contentContainer.addChild(border2);
+    this.border2.alpha = 0.4;
+    
+    this.contentContainer.addChild(this.border2);
     this.contentContainer.addChild(this.gameImage2);
 
     // Счёт и раунд
@@ -721,8 +968,8 @@ private resetForNextRound(): void {
     // Возвращаем картинки к камню
     this.resetImagesToRock();
     
-    // Показываем индикатор ожидания соперника
-    this.showOpponentWaiting();
+    // НЕ ПОКАЗЫВАЕМ ИНДИКАТОР ОЖИДАНИЯ для следующего раунда
+    // так как соперник уже найден
 }
 
 // Сброс картинок к камню
@@ -1532,13 +1779,17 @@ private finishMatch(): void {
     }
   }
 
-  destroy(options?: any): void {
+destroy(options?: any): void {
     this.stopTimer();
     
     if (this.loadingInterval) {
-      clearInterval(this.loadingInterval);
+        clearInterval(this.loadingInterval);
+    }
+    
+    if (this.searchInterval) {
+        clearInterval(this.searchInterval);
     }
     
     super.destroy(options);
-  }
+}
 }
