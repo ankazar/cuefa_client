@@ -238,24 +238,31 @@ export class ResultsScene extends BaseScene {
   private createNavigationButtons(): void {
     const buttonsY = 350;
 
-    // Кнопка "В турниры"
-    const tournamentsButton = new Button('К ТУРНИРАМ', 180, 50);
-    tournamentsButton.x = -100;
-    tournamentsButton.y = buttonsY;
-    tournamentsButton.onPress = () => {
+    const isWin = this.matchData.result.winner === 'ВЫ'
+
+
+    if (!isWin){
+      // Кнопка "В турниры"
+      const tournamentsButton = new Button('К ТУРНИРАМ', 180, 50);
+      tournamentsButton.y = buttonsY;
+      tournamentsButton.onPress = () => {
       this.emit('change-scene', 'TournamentsScene');
     };
     this.contentContainer.addChild(tournamentsButton);
-
-    // Кнопка "Следующий матч"
-    const nextMatchButton = new Button('СЛЕДУЮЩИЙ МАТЧ', 200, 50);
-    nextMatchButton.x = 120;
-    nextMatchButton.y = buttonsY;
-    nextMatchButton.onPress = () => {
+    }
+    else{
+      // Кнопка "Следующий матч"
+      const nextMatchButton = new Button('СЛЕДУЮЩИЙ МАТЧ', 200, 50);
+      nextMatchButton.y = buttonsY;
+      nextMatchButton.onPress = () => {
       // Можно вернуться к поиску матча или в меню
-      this.emit('change-scene', 'TournamentsScene');
+      this.emit('change-scene', 'MatchScene');
     };
     this.contentContainer.addChild(nextMatchButton);
+    }
+    
+
+
   }
 
   resize(width: number, height: number): void {
