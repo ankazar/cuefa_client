@@ -91,7 +91,8 @@ async init(tournamentData?: any): Promise<void> {
     return {
       name: 'Ежедневный',
       prize: '1,000 ₽',
-      entry: 'Бесплатно'
+      entry: 'Бесплатно',
+      lastTour: 10
     };
   }
 
@@ -1641,12 +1642,12 @@ private finishMatch(): void {
     const isWinner = this.playerScore > this.opponentScore;
     
     const result = {
-        winner: isWinner ? 'ВЫ' : 'Player_123',
+        winner: isWinner,
         score: `${this.playerScore}-${this.opponentScore}`,
-        prize: isWinner ? this.tournamentData.prize : '0 ₽',
+        //prize: isWinner ? this.tournamentData.prize : '0 ₽',
         players: [
             { name: 'ВЫ', score: this.playerScore, isWinner: isWinner },
-            { name: 'Player_123', score: this.opponentScore, isWinner: !isWinner }
+            //{ name: 'Player_123', score: this.opponentScore, isWinner: !isWinner }
         ],
         roundHistory: this.roundHistory
     };
