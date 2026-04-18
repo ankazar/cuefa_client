@@ -246,12 +246,7 @@ private updateOpponentCard(data: { name: string; rating: number }): void {
         this.player2NameText.text = data.name;
         this.player2NameText.style.fill = 0xecf0f1;
     }
-       
-    if (this.player2StatusText) {
-        this.player2StatusText.text = 'Готов';
-        this.player2StatusText.style.fill = 0x2ecc71;
-    }
-    
+          
     // Меняем цвет обводки на зелёный
     const bg = this.player2Card.children[0] as Graphics;
     if (bg) {
@@ -357,19 +352,6 @@ private setButtonsActiveState(): void {
     nameText.x = 0;
     nameText.y = 30;
     card.addChild(nameText);
-
-    const statusText = new Text({
-      text: 'Играет...',
-      style: {
-        fill: 0x2ecc71,
-        fontSize: 12,
-        fontFamily: 'Arial'
-      }
-    });
-    statusText.anchor.set(0.5);
-    statusText.x = 0;
-    statusText.y = 85;
-    card.addChild(statusText);
 
     return card;
   }
