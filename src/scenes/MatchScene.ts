@@ -640,7 +640,7 @@ private showRoundResultPopup(result: 'win' | 'lose' | 'draw'): void {
     // Затемняем фон
     const overlay = new Graphics();
     overlay.name = 'popupOverlay';
-    overlay.rect(-400, -300, 800, 600);
+    overlay.rect(-this.app.screen.width/2, 0, this.app.screen.width, this.app.screen.height);
     overlay.fill(0x000000, 0.7);
     this.contentContainer.addChild(overlay);
     
@@ -648,7 +648,7 @@ private showRoundResultPopup(result: 'win' | 'lose' | 'draw'): void {
     const popup = new Container();
     popup.name = 'roundPopup';
     popup.x = 0;
-    popup.y = 0;
+    popup.y = this.app.screen.height/2;
     this.contentContainer.addChild(popup);
     
     // Фон popup
