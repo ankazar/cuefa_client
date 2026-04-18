@@ -30,6 +30,7 @@ export class BootScene extends BaseScene {
                 { alias: 'rock', src: 'assets/images/K.jpg' },
                 { alias: 'scissors', src: 'assets/images/N.jpg' },
                 { alias: 'paper', src: 'assets/images/B.jpg' },
+                { alias: 'rays', src: 'assets/images/rays.png'}
                 // другие ресурсы...
             ]);
             

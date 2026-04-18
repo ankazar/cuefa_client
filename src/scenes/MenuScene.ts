@@ -1,5 +1,5 @@
 import { BaseScene } from './BaseScene';
-import { Graphics, Text } from 'pixi.js';
+import { Graphics, Text, Texture, Assets, Sprite} from 'pixi.js';
 import { Button } from '../components/Button';
 
 export class MenuScene extends BaseScene {
@@ -14,10 +14,21 @@ export class MenuScene extends BaseScene {
   }
 
   private createBackground(): void {
+    const texture = Assets.cache.get('rays') as Texture;
+
     this.background = new Graphics();
     this.background.rect(0, 0, this.app.screen.width, this.app.screen.height);
     this.background.fill(0x004bbc);
     this.container.addChild(this.background);
+
+    const imageBg = new Sprite(texture);
+    imageBg.width = this.app.screen.width*2;
+    imageBg.height = this.app.screen.height*2;
+    imageBg.x = this.centerX()
+    imageBg.y = this.centerY() -50
+    imageBg.anchor.set(0.5)
+    //imageBg.alpha = 0.3; // 30% прозрачности
+    this.container.addChild(imageBg);
   }
 
   private createTitle(): void {
