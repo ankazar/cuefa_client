@@ -7,7 +7,7 @@ export class BootScene extends BaseScene {
     // Создаем простой загрузочный экран
     const background = new Graphics();
     background.rect(0, 0, this.app.screen.width, this.app.screen.height);
-    background.fill(0x1a1a1a);
+    background.fill(0x004bbc);
     this.container.addChild(background);
 
     const userId = 1; //TODO получить от апи

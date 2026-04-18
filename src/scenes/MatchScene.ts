@@ -91,7 +91,7 @@ async init(tournamentData?: any): Promise<void> {
   private createBackground(): void {
     this.background = new Graphics();
     this.background.rect(0, 0, this.app.screen.width, this.app.screen.height);
-    this.background.fill(0x1a1a2e);
+    this.background.fill(0x004bbc);
     this.container.addChild(this.background);
   }
 
@@ -118,8 +118,8 @@ async init(tournamentData?: any): Promise<void> {
     // Фон на всю ширину экрана
     const playersBg = new Graphics();
     playersBg.rect(-this.centerX(), -10, screenWidth, 140); // От левого края до правого
-    playersBg.fill(0x1e2c3a);
-    playersBg.stroke({ width: 2, color: 0x34495e });
+    //playersBg.fill(0x1e2c3a);
+    //playersBg.stroke({ width: 2, color: 0x34495e });
     playersContainer.addChild(playersBg);
     
     // Позиции игроков остаются фиксированными относительно центра
@@ -1511,7 +1511,7 @@ private processRoundResult(result: 'win' | 'lose' | 'draw'): void {
     } else {
         // Следующий раунд
         this.currentRound++;
-        this.roundText.text = `Раунд ${this.currentRound}`;
+        //this.roundText.text = `Раунд ${this.currentRound}`;
     }
 }
 

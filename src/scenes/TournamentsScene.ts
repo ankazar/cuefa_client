@@ -197,7 +197,7 @@ export class TournamentsScene extends BaseScene {
   private createBackground(): void {
     this.background = new Graphics();
     this.background.rect(0, 0, this.app.screen.width, this.app.screen.height);
-    this.background.fill(0x34495e);
+    this.background.fill(0x004bbc);
     this.container.addChild(this.background);
   }
 
