@@ -1,3 +1,4 @@
+import { UserService } from '../core/UserService';
 export class RequestsAPI {
 
   static GetTournamentDataById(id: number){
@@ -15,7 +16,8 @@ export class RequestsAPI {
     };
   }
 
-  static GetTournamentListByUserId(userId: number){
+  static GetTournamentListForUser(){
+    const userId = UserService.getUserId();
     return [
       { 
         id: 1,

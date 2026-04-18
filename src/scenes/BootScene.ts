@@ -1,5 +1,6 @@
 import { BaseScene } from './BaseScene';
 import { Graphics, Text, Assets } from 'pixi.js';
+import { UserService } from '../core/UserService';
 
 export class BootScene extends BaseScene {
   async init(): Promise<void> {
@@ -9,6 +10,10 @@ export class BootScene extends BaseScene {
     background.fill(0x1a1a1a);
     this.container.addChild(background);
 
+    const userId = 1; //TODO получить от апи
+    
+    // Сохраняем в сервис
+    UserService.setUserId(userId);
 
     // Симулируем загрузку или загружаем критические ресурсы
     await this.loadCriticalAssets();

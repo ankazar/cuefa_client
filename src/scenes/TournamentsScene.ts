@@ -21,7 +21,7 @@ export class TournamentsScene extends BaseScene {
     this.tournamentsContainer = new Container();
     this.container.addChild(this.tournamentsContainer);
 
-    const tournaments = RequestsAPI.GetTournamentListByUserId(1)    
+    const tournaments = RequestsAPI.GetTournamentListForUser();    
 
     tournaments.forEach((tournament, index) => {
       this.createInteractiveCard(tournament, index);
