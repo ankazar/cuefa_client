@@ -9,31 +9,14 @@ export class ResultsScene extends BaseScene {
   private matchData: any;
 
   async init(matchData?: any): Promise<void> {
-    this.matchData = matchData || this.getDefaultMatchData();
+    this.matchData = matchData;
+    console.log('this.matchData.tournamentData: ', this.matchData.tournament)
     this.createBackground();
     this.createTitle();
     this.createContent();
     this.createNavigationButtons();
   }
 
-  private getDefaultMatchData(): any {
-    return {
-      tournament: {
-        name: 'Ежедневный турнир1',
-        prize: '1,000 ₽',
-        lastTour: 100
-      },
-      result: {
-        winner: 'ВЫ',
-        score: '2-1',
-        prize: '1,000 ₽',
-        players: [
-          { name: 'ВЫ', score: 2, isWinner: true },
-          { name: 'Player_123', score: 1, isWinner: false }
-        ]
-      }
-    };
-  }
 
   private createBackground(): void {
     this.background = new Graphics();
@@ -240,11 +223,10 @@ export class ResultsScene extends BaseScene {
       nextMatchButton.y = buttonsY;
       nextMatchButton.onPress = () => {
       // Можно вернуться к поиску матча или в меню
-      this.emit('change-scene', 'MatchScene', this.matchData); //TODO переименовать в tournamentData
+      this.emit('change-scene', 'MatchScene', this.matchData.tournament); //TODO переименовать в tournamentData
     };
     this.contentContainer.addChild(nextMatchButton);
-    }
-    
+    }  
 
 
   }

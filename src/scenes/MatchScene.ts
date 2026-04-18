@@ -58,7 +58,7 @@ private roundText!: Text;
 
 async init(tournamentData?: any): Promise<void> {
     console.log('🎮 MatchScene init вызван с данными:', tournamentData);
-    this.tournamentData = tournamentData || this.getDefaultTournamentData();
+    this.tournamentData = tournamentData;
     
     this.createBackground();
     this.createTitle();
@@ -87,15 +87,6 @@ async init(tournamentData?: any): Promise<void> {
     // Ждём соперника (не блокируя интерфейс)
     this.waitForOpponent();
 }
-
-  private getDefaultTournamentData(): any {
-    return {
-      name: 'Ежедневный',
-      prize: '1,000 ₽',
-      entry: 'Бесплатно',
-      lastTour: 10
-    };
-  }
 
   private createBackground(): void {
     this.background = new Graphics();
