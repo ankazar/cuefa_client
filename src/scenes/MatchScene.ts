@@ -123,24 +123,41 @@ async init(tournamentData?: any): Promise<void> {
   }
 
   private createPlayers(): void {
-    const playersY = 0;
     const userName = UserService.getUserData().userName;
-
-    // Игрок 1 (вы)
-    const player1Card = this.createPlayerCard(userName, -150, playersY, 0x3498db);
-    this.contentContainer.addChild(player1Card);
-
-    // Счёт и раунд вместо VS
-    this.createScoreDisplay(playersY + 40);
-
-    // Игрок 2 (противник) - сохраняем ссылки на элементы
-    this.player2Card = this.createPlayerCard('Поиск...', 150, playersY, 0xe74c3c);
-    this.contentContainer.addChild(this.player2Card);
+    
+    // Создаём общий контейнер для игроков
+    const playersContainer = new Container();
+    playersContainer.x = 0;
+    playersContainer.y = 0;
+    this.contentContainer.addChild(playersContainer);
+    
+    // Единый фон для обоих игроков
+    const playersBg = new Graphics();
+    playersBg.roundRect(-180, -10, 360, 140, 15);
+    playersBg.fill(0x1e2c3a);
+    playersBg.stroke({ width: 2, color: 0x34495e });
+    playersContainer.addChild(playersBg);
+    
+    // Игрок 1 (вы) - слева
+    const player1Card = this.createPlayerCard(userName, -120, 20, 0x3498db, true);
+    playersContainer.addChild(player1Card);
+    
+    // Счёт и раунд - по центру
+    this.createScoreDisplay(40, playersContainer);
+    
+    // Игрок 2 (противник) - справа
+    this.player2Card = this.createPlayerCard('Поиск...', 120, 20, 0xe74c3c, false);
+    playersContainer.addChild(this.player2Card);
     
     // Сохраняем ссылки на текстовые элементы
-    this.player2NameText = this.player2Card.children.find(c => c instanceof Text && c.y === 30) as Text;
-    this.player2RatingText = this.player2Card.children.find(c => c instanceof Text && c.y === 60) as Text;
-    this.player2StatusText = this.player2Card.children.find(c => c instanceof Text && c.y === 85) as Text;
+    // Ищем по имени (name) а не по позиции
+    this.player2NameText = this.player2Card.getChildByName('playerName') as Text;
+    this.player2StatusText = this.player2Card.getChildByName('playerStatus') as Text;
+    
+    console.log('🔍 Ссылки на текст:', {
+        nameText: !!this.player2NameText,
+        statusText: !!this.player2StatusText
+    });
     
     // Запускаем поиск соперника
     this.startSearching();
@@ -150,6 +167,8 @@ async init(tournamentData?: any): Promise<void> {
 private startSearching(): void {
     this.isSearching = true;
     let dotCount = 0;
+    
+    console.log('🔍 startSearching: player2NameText =', !!this.player2NameText);
     
     // Обновляем статус в карточке
     if (this.player2StatusText) {
@@ -177,6 +196,7 @@ private async onOpponentFound(): Promise<void> {
     try {
         // Получаем данные соперника
         this.opponentData = await RequestsAPI.GetMatchOpponent();
+        console.log('📡 Получены данные соперника:', this.opponentData);
         
         // Останавливаем поиск
         this.isSearching = false;
@@ -193,7 +213,10 @@ private async onOpponentFound(): Promise<void> {
         this.showOpponentReadyNotification();
         
     } catch (error) {
-        console.error('❌ Ошибка получения соперника:', error);       
+        console.error('❌ Ошибка получения соперника:', error);
+        // Используем тестовые данные при ошибке
+        this.opponentData = { name: 'Player_123' };
+        this.updateOpponentCard(this.opponentData);
     }
 }
 
@@ -241,22 +264,45 @@ private showOpponentReadyNotification(): void {
 }
 
 // НОВЫЙ МЕТОД: Обновление карточки соперника
-private updateOpponentCard(data: { name: string; rating: number }): void {
+private updateOpponentCard(data: { name: string }): void {
+    console.log('📝 updateOpponentCard вызван с данными:', data);
+    console.log('📝 player2NameText существует:', !!this.player2NameText);
+    
     if (this.player2NameText) {
         this.player2NameText.text = data.name;
         this.player2NameText.style.fill = 0xecf0f1;
-    }
-          
+        console.log('✅ Имя соперника обновлено на:', data.name);
+    } else {
+        console.error('❌ player2NameText не найден!');
+        // Попробуем найти заново
+        this.player2NameText = this.player2Card.getChildByName('playerName') as Text;
+        if (this.player2NameText) {
+            this.player2NameText.text = data.name;
+            console.log('✅ Имя соперника обновлено (повторный поиск)');
+        }
+    }   
+
+    
+    
     // Меняем цвет обводки на зелёный
     const bg = this.player2Card.children[0] as Graphics;
     if (bg) {
         bg.clear();
-        bg.roundRect(-70, 0, 140, 120, 10);
+        bg.roundRect(-50, 0, 100, 90, 10);
         bg.fill(0x2c3e50);
-        bg.stroke({ width: 3, color: 0x2ecc71 });
+        bg.stroke({ width: 2, color: 0x2ecc71 });
     }
     
-    // ВОССТАНАВЛИВАЕМ НЕПРОЗРАЧНОСТЬ ПРАВОГО ИЗОБРАЖЕНИЯ И РАМКИ
+    // Меняем цвет аватара
+    const avatar = this.player2Card.children[1] as Graphics;
+    if (avatar) {
+        avatar.clear();
+        avatar.circle(0, 15, 18);
+        avatar.fill(0x2ecc71);
+        avatar.stroke({ width: 2, color: 0xffffff });
+    }
+    
+    // Восстанавливаем непрозрачность правого изображения и рамки
     if (this.gameImage2) {
         this.gameImage2.alpha = 1.0;
     }
@@ -325,36 +371,59 @@ private setButtonsActiveState(): void {
     });
 }
 
-  private createPlayerCard(name: string, x: number, y: number, color: number): Container {
+  private createPlayerCard(name: string, x: number, y: number, color: number, isPlayer: boolean): Container {
     const card = new Container();
     card.x = x;
     card.y = y;
 
-    const cardWidth = 140;
-    const cardHeight = 120;
+    const cardWidth = 100;
+    const cardHeight = 90;
 
+    // Фон карточки игрока
     const bg = new Graphics();
     bg.roundRect(-cardWidth / 2, 0, cardWidth, cardHeight, 10);
     bg.fill(0x2c3e50);
-    bg.stroke({ width: 3, color: color });
+    bg.stroke({ width: 2, color: color });
     card.addChild(bg);
 
-    const nameText = new Text({
-      text: name,
-      style: {
-        fill: 0xecf0f1,
-        fontSize: 18,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
+    // Аватар (кружок)
+    const avatar = new Graphics();
+    avatar.circle(0, 15, 18);
+    avatar.fill(color);
+    avatar.stroke({ width: 2, color: 0xffffff });
+    card.addChild(avatar);
+    
+    // Эмодзи в аватаре
+    const avatarEmoji = new Text({
+        text: isPlayer ? '👤' : '🎮',
+        style: {
+            fontSize: 18,
+            fontFamily: 'Arial'
+        }
     });
+    avatarEmoji.anchor.set(0.5);
+    avatarEmoji.x = 0;
+    avatarEmoji.y = 15;
+    card.addChild(avatarEmoji);
+
+    // Имя игрока
+    const nameText = new Text({
+        text: name,
+        style: {
+            fill: 0xecf0f1,
+            fontSize: 14,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
+    });
+    nameText.name = 'playerName'; // ВАЖНО: задаём имя для поиска
     nameText.anchor.set(0.5);
     nameText.x = 0;
-    nameText.y = 30;
+    nameText.y = 45;
     card.addChild(nameText);
 
     return card;
-  }
+}
 
   private showLoadingIndicator(): void {
     const fieldY = 190;
@@ -540,17 +609,19 @@ private createGameField(): void {
     this.startTimer();
 }
 
-private createScoreDisplay(y: number): void {
+private createScoreDisplay(y: number, parentContainer?: Container): void {
+    const targetContainer = parentContainer || this.contentContainer;
+    
     // Контейнер для счёта и раунда
     const scoreContainer = new Container();
     scoreContainer.x = 0;
     scoreContainer.y = y;
-    this.contentContainer.addChild(scoreContainer);
+    targetContainer.addChild(scoreContainer);
     
     // Фон для счёта
     const scoreBg = new Graphics();
-    scoreBg.roundRect(-60, -25, 120, 50, 10);
-    scoreBg.fill(0x2c3e50);
+    scoreBg.roundRect(-45, -20, 90, 40, 8);
+    scoreBg.fill(0x1a252f);
     scoreBg.stroke({ width: 2, color: 0xf1c40f });
     scoreContainer.addChild(scoreBg);
     
@@ -559,30 +630,30 @@ private createScoreDisplay(y: number): void {
         text: `${this.playerScore} : ${this.opponentScore}`,
         style: {
             fill: 0xecf0f1,
-            fontSize: 28,
+            fontSize: 22,
             fontFamily: 'Arial',
             fontWeight: 'bold'
         }
     });
     this.scoreText.anchor.set(0.5);
     this.scoreText.x = 0;
-    this.scoreText.y = -5;
+    this.scoreText.y = -3;
     scoreContainer.addChild(this.scoreText);
     
-    // Раунд (под счётом)
-    this.roundText = new Text({
-        text: `Раунд ${this.currentRound}`,
+    // VS текст маленький
+    const vsText = new Text({
+        text: 'VS',
         style: {
-            fill: 0xf1c40f,
-            fontSize: 14,
+            fill: 0xe74c3c,
+            fontSize: 10,
             fontFamily: 'Arial',
             fontWeight: 'bold'
         }
     });
-    this.roundText.anchor.set(0.5);
-    this.roundText.x = 0;
-    this.roundText.y = 18;
-    scoreContainer.addChild(this.roundText);
+    vsText.anchor.set(0.5);
+    vsText.x = 0;
+    vsText.y = 12;
+    scoreContainer.addChild(vsText);
 }
 
 
