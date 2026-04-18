@@ -1,6 +1,7 @@
 import { BaseScene } from './BaseScene';
 import { Graphics, Text, Container } from 'pixi.js';
 import { Button } from '../components/Button';
+import { RequestsAPI } from '../core/RequestsAPI';
 
 export class TournamentInfoScene extends BaseScene {
   private background!: Graphics;
@@ -10,26 +11,13 @@ export class TournamentInfoScene extends BaseScene {
   private tournamentData: any;
 
   async init(tournamentData?: any): Promise<void> {
-    this.tournamentData = tournamentData || this.getDefaultTournamentData();
+
+    this.tournamentData = RequestsAPI.GetTournamentDataById(tournamentData.id);
     this.createBackground();
     this.createTitle();
     this.createBackButton();
     this.createContent();
-  }
-
-  private getDefaultTournamentData(): any {
-    return {
-      name: 'Ежедневный турнир',
-      players: '128/256',
-      prize: '1,000 ₽',
-      entry: 'Бесплатно',
-      status: 'available',
-      time: '15:00',
-      duration: '2 часа',
-      rules: 'Лучший из 3 раундов',
-      prizeDistribution: ['1 место: 500 ₽', '2 место: 300 ₽', '3 место: 200 ₽']
-    };
-  }
+  } 
 
   private createBackground(): void {
     this.background = new Graphics();
