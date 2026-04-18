@@ -115,7 +115,7 @@ export class ResultsScene extends BaseScene {
         txt = 'Победа в турнире'
       }
       else{
-        txt = `Вы выиграли ${curTour} тура из ${lastTour}`
+        txt = `Вы выиграли ${curTour} тур из ${lastTour}`
         this.matchData.tournament.curTour += 1; //TODO может перенести где кнопка нажимается
       }
 
@@ -142,24 +142,33 @@ export class ResultsScene extends BaseScene {
     const prizeY = 220;
     const isWinner = this.matchData.result.winner;
 
-    if (isWinner) {
-      const prizeText = new Text({
-        text: `🏆 ВЫ ВЫИГРАЛИ: ${this.matchData.tournament.prize}`, //TODO не определяет во втором туре
-        style: {
-          fill: 0xffd700,
-          fontSize: 24,
-          fontFamily: 'Arial',
-          fontWeight: 'bold'
-        }
-      });
-      prizeText.anchor.set(0.5);
-      prizeText.x = 0;
-      prizeText.y = prizeY;
-      this.contentContainer.addChild(prizeText);
+    if (isWinner) 
+    {
+      const curTour = this.matchData.tournament.curTour;
+      const lastTour = this.matchData.tournament.lastTour;
 
-      // Анимация падающих монет
-      this.createCoinAnimation();
-    } else {
+      if(curTour == lastTour)
+      {
+        const prizeText = new Text({
+          text: `🏆 ВЫ ВЫИГРАЛИ: ${this.matchData.tournament.prize}`, //TODO не определяет во втором туре
+          style: {
+            fill: 0xffd700,
+            fontSize: 24,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+          }
+        });
+        prizeText.anchor.set(0.5);
+        prizeText.x = 0;
+        prizeText.y = prizeY;
+        this.contentContainer.addChild(prizeText);
+
+        // Анимация падающих монет
+        this.createCoinAnimation();
+      }    
+    } 
+    else 
+    {
       const loseText = new Text({
         text: '😔 Вы выбыли из турнира',
         style: {
