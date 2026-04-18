@@ -123,19 +123,20 @@ async init(tournamentData?: any): Promise<void> {
     playersContainer.addChild(playersBg);
     
     // Позиции игроков остаются фиксированными относительно центра
-    const player1X = -120;
-    const player2X = 120;
+    const player1X = -(screenWidth)/4;
+    const player2X = (screenWidth)/4;
     
     // Игрок 1 (вы) - слева
     const player1Card = this.createPlayerCard(userName, player1X, 20, 0x3498db, true);
-    playersContainer.addChild(player1Card);
-    
-    // Счёт и раунд - по центру
-    this.createScoreDisplay(40, playersContainer);
+    playersContainer.addChild(player1Card);   
+
     
     // Игрок 2 (противник) - справа
     this.player2Card = this.createPlayerCard('Поиск...', player2X, 20, 0xe74c3c, false);
     playersContainer.addChild(this.player2Card);
+
+        // Счёт и раунд - по центру
+    this.createScoreDisplay(40, playersContainer);
     
     // Сохраняем ссылки на текстовые элементы
     this.player2NameText = this.player2Card.getChildByName('playerName') as Text;
@@ -250,7 +251,7 @@ private showOpponentReadyNotification(): void {
 private updateOpponentCard(data: { name: string }): void {
     console.log('📝 updateOpponentCard вызван с данными:', data);
     
-    const cardWidth = 130;
+    const cardWidth = (this.app.screen.width)/2;
     const cardHeight = 45;
     
     if (this.player2NameText) {
@@ -352,7 +353,7 @@ private setButtonsActiveState(): void {
     card.x = x;
     card.y = y;
 
-    const cardWidth = 130;
+    const cardWidth = (this.app.screen.width)/2;
     const cardHeight = 45;
 
     // Фон карточки
@@ -597,7 +598,7 @@ private createScoreDisplay(y: number, parentContainer?: Container): void {
     
     // Фон для счёта
     const scoreBg = new Graphics();
-    scoreBg.roundRect(-45, -20, 90, 40, 8);
+    scoreBg.roundRect(-45, -20, 90, 45, 8);
     scoreBg.fill(0x1a252f);
     scoreBg.stroke({ width: 2, color: 0xf1c40f });
     scoreContainer.addChild(scoreBg);
