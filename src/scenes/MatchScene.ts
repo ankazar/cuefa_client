@@ -246,41 +246,35 @@ private showOpponentReadyNotification(): void {
 }
 
 // НОВЫЙ МЕТОД: Обновление карточки соперника
+// ЗАМЕНИТЕ метод updateOpponentCard:
 private updateOpponentCard(data: { name: string }): void {
     console.log('📝 updateOpponentCard вызван с данными:', data);
-    console.log('📝 player2NameText существует:', !!this.player2NameText);
+    
+    const cardWidth = 130;
+    const cardHeight = 45;
     
     if (this.player2NameText) {
         this.player2NameText.text = data.name;
         this.player2NameText.style.fill = 0xecf0f1;
         console.log('✅ Имя соперника обновлено на:', data.name);
-    } else {
-        console.error('❌ player2NameText не найден!');
-        // Попробуем найти заново
-        this.player2NameText = this.player2Card.getChildByName('playerName') as Text;
-        if (this.player2NameText) {
-            this.player2NameText.text = data.name;
-            console.log('✅ Имя соперника обновлено (повторный поиск)');
-        }
-    }   
-
+    }
     
-    
-    // Меняем цвет обводки на зелёный
+    // Обновляем фон карточки - меняем только цвет обводки
     const bg = this.player2Card.children[0] as Graphics;
     if (bg) {
         bg.clear();
-        bg.roundRect(-50, 0, 100, 90, 10);
+        bg.roundRect(-cardWidth / 2, 0, cardWidth, cardHeight, 22);
         bg.fill(0x2c3e50);
-        bg.stroke({ width: 2, color: 0x2ecc71 });
+        bg.stroke({ width: 2, color: 0x2ecc71 }); // Зелёная обводка
     }
     
-    // Меняем цвет аватара
+    // Обновляем аватар - меняем только цвет заливки
     const avatar = this.player2Card.children[1] as Graphics;
     if (avatar) {
         avatar.clear();
-        avatar.circle(0, 15, 18);
-        avatar.fill(0x2ecc71);
+        const avatarX = cardWidth / 2 - 22;
+        avatar.circle(avatarX, cardHeight / 2, 16);
+        avatar.fill(0x2ecc71); // Зелёный цвет
         avatar.stroke({ width: 2, color: 0xffffff });
     }
     
@@ -358,37 +352,38 @@ private setButtonsActiveState(): void {
     card.x = x;
     card.y = y;
 
-    const cardWidth = 100;
-    const cardHeight = 90;
+    const cardWidth = 130;
+    const cardHeight = 45;
 
-    // Фон карточки игрока
+    // Фон карточки
     const bg = new Graphics();
-    bg.roundRect(-cardWidth / 2, 0, cardWidth, cardHeight, 10);
+    bg.roundRect(-cardWidth / 2, 0, cardWidth, cardHeight, 22);
     bg.fill(0x2c3e50);
     bg.stroke({ width: 2, color: color });
     card.addChild(bg);
 
-    // Аватар (кружок)
+    // Аватар
     const avatar = new Graphics();
-    avatar.circle(0, 15, 18);
+    const avatarX = isPlayer ? -cardWidth / 2 + 22 : cardWidth / 2 - 22;
+    avatar.circle(avatarX, cardHeight / 2, 16);
     avatar.fill(color);
     avatar.stroke({ width: 2, color: 0xffffff });
     card.addChild(avatar);
     
-    // Эмодзи в аватаре
+    // Эмодзи
     const avatarEmoji = new Text({
         text: isPlayer ? '👤' : '🎮',
         style: {
-            fontSize: 18,
+            fontSize: 16,
             fontFamily: 'Arial'
         }
     });
     avatarEmoji.anchor.set(0.5);
-    avatarEmoji.x = 0;
-    avatarEmoji.y = 15;
+    avatarEmoji.x = avatarX;
+    avatarEmoji.y = cardHeight / 2;
     card.addChild(avatarEmoji);
 
-    // Имя игрока
+    // Имя
     const nameText = new Text({
         text: name,
         style: {
@@ -398,10 +393,10 @@ private setButtonsActiveState(): void {
             fontWeight: 'bold'
         }
     });
-    nameText.name = 'playerName'; // ВАЖНО: задаём имя для поиска
-    nameText.anchor.set(0.5);
-    nameText.x = 0;
-    nameText.y = 45;
+    nameText.name = 'playerName';
+    nameText.anchor.set(isPlayer ? 0 : 1, 0.5);
+    nameText.x = isPlayer ? avatarX + 22 : avatarX - 22;
+    nameText.y = cardHeight / 2;
     card.addChild(nameText);
 
     return card;
