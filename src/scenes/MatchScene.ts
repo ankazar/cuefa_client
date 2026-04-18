@@ -1,6 +1,7 @@
 import { RequestsAPI } from '../core/RequestsAPI';
 import { BaseScene } from './BaseScene';
 import { Graphics, Text, Container, Sprite, Assets, Texture } from 'pixi.js';
+import { UserService } from '../core/UserService';
 
 export class MatchScene extends BaseScene {
   private background!: Graphics;
@@ -123,16 +124,17 @@ async init(tournamentData?: any): Promise<void> {
 
   private createPlayers(): void {
     const playersY = 0;
+    const userName = UserService.getUserData().userName;
 
     // Игрок 1 (вы)
-    const player1Card = this.createPlayerCard('ВЫ', '1450', -150, playersY, 0x3498db);
+    const player1Card = this.createPlayerCard(userName, -150, playersY, 0x3498db);
     this.contentContainer.addChild(player1Card);
 
     // Счёт и раунд вместо VS
     this.createScoreDisplay(playersY + 40);
 
     // Игрок 2 (противник) - сохраняем ссылки на элементы
-    this.player2Card = this.createPlayerCard('Поиск...', '???', 150, playersY, 0xe74c3c);
+    this.player2Card = this.createPlayerCard('Поиск...', 150, playersY, 0xe74c3c);
     this.contentContainer.addChild(this.player2Card);
     
     // Сохраняем ссылки на текстовые элементы
@@ -191,11 +193,7 @@ private async onOpponentFound(): Promise<void> {
         this.showOpponentReadyNotification();
         
     } catch (error) {
-        console.error('❌ Ошибка получения соперника:', error);
-        
-        // В случае ошибки используем данные по умолчанию
-        this.opponentData = { name: 'Player_123', rating: 1420 };
-        this.updateOpponentCard(this.opponentData);
+        console.error('❌ Ошибка получения соперника:', error);       
     }
 }
 
@@ -248,12 +246,7 @@ private updateOpponentCard(data: { name: string; rating: number }): void {
         this.player2NameText.text = data.name;
         this.player2NameText.style.fill = 0xecf0f1;
     }
-    
-    if (this.player2RatingText) {
-        this.player2RatingText.text = `⭐ ${data.rating}`;
-        this.player2RatingText.style.fill = 0xf1c40f;
-    }
-    
+       
     if (this.player2StatusText) {
         this.player2StatusText.text = 'Готов';
         this.player2StatusText.style.fill = 0x2ecc71;
@@ -337,7 +330,7 @@ private setButtonsActiveState(): void {
     });
 }
 
-  private createPlayerCard(name: string, rating: string, x: number, y: number, color: number): Container {
+  private createPlayerCard(name: string, x: number, y: number, color: number): Container {
     const card = new Container();
     card.x = x;
     card.y = y;
@@ -364,19 +357,6 @@ private setButtonsActiveState(): void {
     nameText.x = 0;
     nameText.y = 30;
     card.addChild(nameText);
-
-    const ratingText = new Text({
-      text: `⭐ ${rating}`,
-      style: {
-        fill: 0xf1c40f,
-        fontSize: 14,
-        fontFamily: 'Arial'
-      }
-    });
-    ratingText.anchor.set(0.5);
-    ratingText.x = 0;
-    ratingText.y = 60;
-    card.addChild(ratingText);
 
     const statusText = new Text({
       text: 'Играет...',
@@ -572,9 +552,6 @@ private createGameField(): void {
     this.contentContainer.addChild(this.border2);
     this.contentContainer.addChild(this.gameImage2);
    
-    // Подписи под изображениями
-    this.createImageLabels(fieldY + imageHeight + 5);
-
     // Три круглые кнопки
     this.createRoundButtons(fieldY + imageHeight + 65);
 
@@ -920,39 +897,6 @@ private hideOpponentWaiting(): void {
         waitingContainer.destroy({ children: true });
     }
 }
-
-private createImageLabels(y: number): void {
-    // Подпись "ВЫ"
-    const playerLabel = new Text({
-        text: 'ВЫ',
-        style: {
-            fill: 0x3498db,
-            fontSize: 16,
-            fontFamily: 'Arial',
-            fontWeight: 'bold'
-        }
-    });
-    playerLabel.anchor.set(0.5);
-    playerLabel.x = this.gameImage1.x;
-    playerLabel.y = y;
-    this.contentContainer.addChild(playerLabel);
-    
-    // Подпись "СОПЕРНИК"
-    const opponentLabel = new Text({
-        text: 'СОПЕРНИК',
-        style: {
-            fill: 0xe74c3c,
-            fontSize: 16,
-            fontFamily: 'Arial',
-            fontWeight: 'bold'
-        }
-    });
-    opponentLabel.anchor.set(0.5);
-    opponentLabel.x = this.gameImage2.x;
-    opponentLabel.y = y;
-    this.contentContainer.addChild(opponentLabel);
-}
-
 
 private createChoiceFallbackTexture(choice: string): Texture {
     const canvas = document.createElement('canvas');

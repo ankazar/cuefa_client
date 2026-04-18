@@ -22,7 +22,7 @@ export class MenuScene extends BaseScene {
 
   private createTitle(): void {
     this.title = new Text({
-      text: 'PIXIJS GAME',
+      text: 'CUEFA CUP',
       style: {
         fill: 0xecf0f1,
         fontSize: 64,
@@ -53,27 +53,15 @@ export class MenuScene extends BaseScene {
     };
     this.container.addChild(this.tournamentsButton);
 
-    // Кнопка "Настройки"
-    const settingsButton = new Button('Настройки', 180, 45);
-    settingsButton.x = centerX;
-    settingsButton.y = 370;
-    settingsButton.onPress = () => {
-      console.log('⚙️ Нажата кнопка "Настройки"');
-      alert('⚙️ Настройки игры');
-    };
-    this.container.addChild(settingsButton);
-
-    // Кнопка "Выход"
-    const exitButton = new Button('Выход', 160, 40);
-    exitButton.x = centerX;
-    exitButton.y = 430;
-    exitButton.onPress = () => {
-      console.log('🚪 Нажата кнопка "Выход"');
-      if (confirm('Вы уверены, что хотите выйти?')) {
-        window.close();
-      }
-    };
-    this.container.addChild(exitButton);
+    //// Кнопка "Настройки"
+    //const settingsButton = new Button('Настройки', 180, 45);
+    //settingsButton.x = centerX;
+    //settingsButton.y = 370;
+    //settingsButton.onPress = () => {
+    //  console.log('⚙️ Нажата кнопка "Настройки"');
+    //  alert('⚙️ Настройки игры');
+    //};
+    //this.container.addChild(settingsButton);
   }
 
   resize(width: number, height: number): void {

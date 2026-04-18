@@ -15,6 +15,8 @@ export class BootScene extends BaseScene {
     // Сохраняем в сервис
     UserService.setUserId(userId);
 
+    UserService.setUserData({userName: 'Андрей Молотов'})
+
     // Симулируем загрузку или загружаем критические ресурсы
     await this.loadCriticalAssets();
   }
