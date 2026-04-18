@@ -69,4 +69,27 @@ export class RequestsAPI {
       }
     ];
   }
+
+  static async GetMatchOpponent(): Promise<any> {
+    console.log('📡 Запрос данных соперника...');
+    
+    // Имитация задержки сети
+    await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+    
+    // Имитация ответа от сервера
+    const opponents = [
+        { name: 'DragonSlayer', rating: 1580 },
+        { name: 'ShadowMaster', rating: 1420 },
+        { name: 'NightWolf', rating: 1650 },
+        { name: 'StormBreaker', rating: 1350 },
+        { name: 'PhoenixRider', rating: 1720 },
+        { name: 'IceQueen', rating: 1480 }
+    ];
+    
+    // Случайный выбор соперника
+    const opponent = opponents[Math.floor(Math.random() * opponents.length)];
+    
+    console.log('✅ Данные соперника получены:', opponent);
+    return opponent;
+}
 }
