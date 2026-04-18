@@ -255,9 +255,6 @@ export class TournamentInfoScene extends BaseScene {
     
     // Сразу переходим к поиску соперника
     console.log(`✅ Игрок присоединился к турниру: ${this.tournamentData.name}`);
-
-    this.tournamentData.lastTour = 2; //TODO
-    this.tournamentData.curTour = 1; //TODO
   
     // Переход на сцену поиска соперника
     this.emit('change-scene', 'MatchScene', this.tournamentData);

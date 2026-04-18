@@ -217,7 +217,23 @@ export class ResultsScene extends BaseScene {
     };
     this.contentContainer.addChild(tournamentsButton);
     }
-    else{
+
+      const curTour = this.matchData.tournament.curTour;
+      const lastTour = this.matchData.tournament.lastTour;
+    
+    if (curTour == lastTour)
+    {
+      // Кнопка "Список турниров"
+      const nextMatchButton = new Button('Список турниров', 200, 50);
+      nextMatchButton.y = buttonsY;
+      nextMatchButton.onPress = () => {
+      // Можно вернуться к поиску матча или в меню
+      this.emit('change-scene', 'TournamentsScene', this.matchData.tournament); //TODO переименовать в tournamentData
+    };
+    this.contentContainer.addChild(nextMatchButton);
+    }
+    else
+    {
       // Кнопка "Следующий матч"
       const nextMatchButton = new Button('СЛЕДУЮЩИЙ МАТЧ', 200, 50);
       nextMatchButton.y = buttonsY;

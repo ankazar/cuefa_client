@@ -18,7 +18,9 @@ export class RequestsAPI {
         time: '15:00',
         duration: '2 часа',
         rules: 'Лучший из 3 раундов',
-        prizeDistribution: ['1 место: 500 ₽', '2 место: 300 ₽', '3 место: 200 ₽']
+        prizeDistribution: ['1 место: 500 ₽', '2 место: 300 ₽', '3 место: 200 ₽'],
+        lastTour: 2,
+        curTour: 1
       },
       { 
         id: 2,
@@ -30,7 +32,9 @@ export class RequestsAPI {
         time: 'Завтра 20:00',
         duration: '4 часа',
         rules: 'Double Elimination',
-        prizeDistribution: ['1 место: 2,500 ₽', '2 место: 1,500 ₽', '3-4 место: 500 ₽']
+        prizeDistribution: ['1 место: 2,500 ₽', '2 место: 1,500 ₽', '3-4 место: 500 ₽'],
+        lastTour: 2,
+        curTour: 1
       },
       { 
         id: 3,
@@ -42,7 +46,9 @@ export class RequestsAPI {
         time: 'Идет сейчас',
         duration: '6 часов',
         rules: 'Round Robin + Playoffs',
-        prizeDistribution: ['1 место: 12,500 ₽', '2 место: 7,500 ₽', '3 место: 5,000 ₽']
+        prizeDistribution: ['1 место: 12,500 ₽', '2 место: 7,500 ₽', '3 место: 5,000 ₽'],
+        lastTour: 2,
+        curTour: 1
       },
       { 
         id: 4,
@@ -54,7 +60,9 @@ export class RequestsAPI {
         time: 'Завершен',
         duration: '3 часа',
         rules: 'Battle Royale',
-        prizeDistribution: ['1 место: 5,000 ₽', '2 место: 3,000 ₽', '3 место: 2,000 ₽']
+        prizeDistribution: ['1 место: 5,000 ₽', '2 место: 3,000 ₽', '3 место: 2,000 ₽'],
+        lastTour: 2,
+        curTour: 1
       }
     ];
   }
