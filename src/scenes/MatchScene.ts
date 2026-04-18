@@ -62,7 +62,6 @@ async init(tournamentData?: any): Promise<void> {
     this.tournamentData = tournamentData;
     
     this.createBackground();
-    this.createTitle();
     this.createContentContainer();
     this.createPlayers();        // Создаёт карточки
     
@@ -96,29 +95,10 @@ async init(tournamentData?: any): Promise<void> {
     this.container.addChild(this.background);
   }
 
-  private createTitle(): void {
-    this.title = new Text({
-      text: 'МАТЧ',
-      style: {
-        fill: 0xecf0f1,
-        fontSize: 36,
-        fontFamily: 'Arial',
-        fontWeight: 'bold',
-        stroke: 0x3498db,
-        strokeThickness: 3
-      }
-    });
-    
-    this.title.anchor.set(0.5);
-    this.title.x = this.centerX();
-    this.title.y = 80;
-    this.container.addChild(this.title);
-  }
-
   private createContentContainer(): void {
     this.contentContainer = new Container();
     this.contentContainer.x = this.centerX();
-    this.contentContainer.y = 200;
+    this.contentContainer.y = 0;
     this.container.addChild(this.contentContainer);
   }
 
@@ -131,33 +111,35 @@ async init(tournamentData?: any): Promise<void> {
     playersContainer.y = 0;
     this.contentContainer.addChild(playersContainer);
     
-    // Единый фон для обоих игроков
+    // Получаем ширину родительского контейнера (contentContainer находится по центру)
+    // Но нам нужна ширина всего экрана
+    const screenWidth = this.app.screen.width;
+    
+    // Фон на всю ширину экрана
     const playersBg = new Graphics();
-    playersBg.roundRect(-180, -10, 360, 140, 15);
+    playersBg.rect(-this.centerX(), -10, screenWidth, 140); // От левого края до правого
     playersBg.fill(0x1e2c3a);
     playersBg.stroke({ width: 2, color: 0x34495e });
     playersContainer.addChild(playersBg);
     
+    // Позиции игроков остаются фиксированными относительно центра
+    const player1X = -120;
+    const player2X = 120;
+    
     // Игрок 1 (вы) - слева
-    const player1Card = this.createPlayerCard(userName, -120, 20, 0x3498db, true);
+    const player1Card = this.createPlayerCard(userName, player1X, 20, 0x3498db, true);
     playersContainer.addChild(player1Card);
     
     // Счёт и раунд - по центру
     this.createScoreDisplay(40, playersContainer);
     
     // Игрок 2 (противник) - справа
-    this.player2Card = this.createPlayerCard('Поиск...', 120, 20, 0xe74c3c, false);
+    this.player2Card = this.createPlayerCard('Поиск...', player2X, 20, 0xe74c3c, false);
     playersContainer.addChild(this.player2Card);
     
     // Сохраняем ссылки на текстовые элементы
-    // Ищем по имени (name) а не по позиции
     this.player2NameText = this.player2Card.getChildByName('playerName') as Text;
     this.player2StatusText = this.player2Card.getChildByName('playerStatus') as Text;
-    
-    console.log('🔍 Ссылки на текст:', {
-        nameText: !!this.player2NameText,
-        statusText: !!this.player2StatusText
-    });
     
     // Запускаем поиск соперника
     this.startSearching();
