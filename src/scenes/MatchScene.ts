@@ -363,26 +363,29 @@ private setButtonsActiveState(): void {
     bg.stroke({ width: 2, color: color });
     card.addChild(bg);
 
-    // Аватар
-    const avatar = new Graphics();
-    const avatarX = isPlayer ? -cardWidth / 2 + 22 : cardWidth / 2 - 22;
-    avatar.circle(avatarX, cardHeight / 2, 16);
-    avatar.fill(color);
-    avatar.stroke({ width: 2, color: 0xffffff });
+    const avatar = new Sprite();
+
+    // Получаем текстуру из кэша
+    const texture = Assets.cache.get('user_photo') as Texture;
+    avatar.texture = texture;
+
+    // Позиционируем
+    const avatarX = isPlayer ? -cardWidth / 2 + 31 : cardWidth / 2 - 31;
+    avatar.anchor.set(0.5);
+    avatar.x = avatarX;
+    avatar.y = cardHeight / 2;
+    avatar.width = 50;
+    avatar.height = 50;
+
+    // Маска для круглого аватара
+    const mask = new Graphics();
+    mask.circle(avatarX, cardHeight / 2, 25);
+    mask.fill(0xffffff);
+    card.addChild(mask);
+    avatar.mask = mask;
+
     card.addChild(avatar);
-    
-    // Эмодзи
-    const avatarEmoji = new Text({
-        text: isPlayer ? '👤' : '🎮',
-        style: {
-            fontSize: 16,
-            fontFamily: 'Arial'
-        }
-    });
-    avatarEmoji.anchor.set(0.5);
-    avatarEmoji.x = avatarX;
-    avatarEmoji.y = cardHeight / 2;
-    card.addChild(avatarEmoji);
+    card.addChild(mask);
 
     // Имя
     const nameText = new Text({
