@@ -1,6 +1,7 @@
 import { BaseScene } from './BaseScene';
 import { Graphics, Text, Assets } from 'pixi.js';
 import { UserService } from '../core/UserService';
+import { RequestsAPI } from '../core/RequestsAPI';
 
 export class BootScene extends BaseScene {
   async init(): Promise<void> {
@@ -25,16 +26,17 @@ export class BootScene extends BaseScene {
     this.showLoadingScreen();
     // Здесь можно загрузить самые важные ресурсы
             try {
-            // Загружаем все необходимые ресурсы
+              const user_photo = await RequestsAPI.GetImageBase64('https://sun112-1.userapi.com/s/v1/ig2/Rzdy-gHRsLWhVFH68Sn_cmRFvOGZLUNZerqyOZzkfb7l835xNsQK1n3fQe_8RtxDDzznRtMxTTadaBnFgx5bzKNh.jpg?quality=95&crop=1066,536,805,805&as=32x32,48x48,72x72,108x108,160x160,240x240,360x360,480x480,540x540,640x640,720x720&ava=1&cs=50x50')
+
+              // Загружаем все необходимые ресурсы
             await Assets.load([
                 { alias: 'rock', src: 'assets/images/K.jpg' },
                 { alias: 'scissors', src: 'assets/images/N.jpg' },
                 { alias: 'paper', src: 'assets/images/B.jpg' },
-                { alias: 'rays', src: 'assets/images/rays.png'}
+                { alias: 'rays', src: 'assets/images/rays.png'},
+                { alias: 'user_photo', src: user_photo}
                 // другие ресурсы...
             ]);
-            
-            console.log('✅ Все ресурсы загружены');
             
             // Переходим на следующую сцену
             this.emit('change-scene', 'MenuScene');

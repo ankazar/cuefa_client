@@ -89,4 +89,38 @@ export class RequestsAPI {
     console.log('✅ Данные соперника получены:', opponent);
     return opponent;
 }
+
+    static async GetImageBase64(url: string): Promise<any> {
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            mode: 'cors',
+            cache: 'default'
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const blob = await response.blob();
+        
+        return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onloadend = () => {
+            const base64 = reader.result as string;
+            resolve(base64);
+        };
+        
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+    });
+
+    } catch (error) {
+        console.error('Ошибка запроса:', error);
+        throw error;
+    }
+}
+
+
 }
