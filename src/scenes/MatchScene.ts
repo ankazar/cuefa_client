@@ -351,7 +351,7 @@ private setButtonsActiveState(): void {
     card.y = y;
 
     const cardWidth = (this.app.screen.width)/2;
-    const cardHeight = 45;
+    const cardHeight = 50;
 
     // Получаем текстуру из кэша
     const avatarAlias = isPlayer ? 'user_photo' : 'search_opponent';
@@ -536,14 +536,6 @@ private createGameField(): void {
     this.gameImage1.x = -imageWidth / 2 - gap / 2;
     this.gameImage1.y = fieldY + imageHeight / 2;
     
-    const border1 = this.createImageBorder(
-      this.gameImage1.x, 
-      fieldY, 
-      imageWidth, 
-      imageHeight,
-      0x3498db
-    );
-    this.contentContainer.addChild(border1);
     this.contentContainer.addChild(this.gameImage1);
 
     // Настраиваем второе изображение (соперник)
@@ -556,16 +548,6 @@ private createGameField(): void {
     // ДЕЛАЕМ ПРАВОЕ ИЗОБРАЖЕНИЕ ПОЛУПРОЗРАЧНЫМ
     this.gameImage2.alpha = 0.4;
     
-    this.border2 = this.createImageBorder(
-      this.gameImage2.x, 
-      fieldY, 
-      imageWidth, 
-      imageHeight,
-      0xe74c3c
-    );
-    this.border2.alpha = 0.4;
-    
-    this.contentContainer.addChild(this.border2);
     this.contentContainer.addChild(this.gameImage2);
    
     // Три круглые кнопки
@@ -634,20 +616,26 @@ private createScoreDisplay(y: number, parentContainer?: Container): void {
     this.userscore.y = -3;
     scoreContainer.addChild(this.userscore);
     
-   //// VS текст маленький
-   //const vsText = new Text({
-   //    text: 'VS',
-   //    style: {
-   //        fill: 0xe74c3c,
-   //        fontSize: 10,
-   //        fontFamily: 'Arial',
-   //        fontWeight: 'bold'
-   //    }
-   //});
-   //vsText.anchor.set(0.5);
-   //vsText.x = 0;
-   //vsText.y = 12;
-   //scoreContainer.addChild(vsText);
+   const line = new Graphics();
+   line.moveTo(-40, 22);    // Начальная точка
+   line.lineTo(40, 22);   // Конечная точка
+   line.stroke({ width: 1, color: 'DarkGray' });
+   scoreContainer.addChild(line);
+
+   this.roundText = new Text({
+        text: `Раунд ${1}`,
+        style: {
+            fill: 'black',
+            fontSize: 12,
+            fontFamily: 'Arial',
+            fontWeight: 'bold',
+            align: 'center'
+        }
+    });
+    this.roundText.anchor.set(0.5);
+    this.roundText.x = 0;
+    this.roundText.y = 36;
+    scoreContainer.addChild(this.roundText);
 }
 
 
@@ -1529,7 +1517,7 @@ private processRoundResult(result: 'win' | 'lose' | 'draw'): void {
     } else {
         // Следующий раунд
         this.currentRound++;
-        //this.roundText.text = `Раунд ${this.currentRound}`;
+        this.roundText.text = `Раунд ${this.currentRound}`;
     }
 }
 
