@@ -55,12 +55,6 @@ private userscore!: Text;
 private opponentScoreText!: Text;
 private roundText!: Text;
 
-  // Пути к изображениям
-  private readonly IMAGE_PATHS = {
-    left: 'assets/images/K.jpg',
-    right: 'assets/images/K.jpg'
-  };
-
 async init(tournamentData?: any): Promise<void> {
     console.log('🎮 MatchScene init вызван с данными:', tournamentData);
     this.tournamentData = tournamentData;
@@ -488,6 +482,8 @@ private setButtonsActiveState(): void {
         // Изначально показываем камень для обоих
         this.gameImage1 = new Sprite(rockTexture);
         this.gameImage2 = new Sprite(rockTexture);
+
+        this.gameImage2.scale.x = -1;
         
     } catch (error) {
         console.error('Ошибка получения текстур из кэша:', error);
@@ -528,7 +524,7 @@ private setButtonsActiveState(): void {
 private createGameField(): void {
     const fieldY = 190;
     const imageWidth = 180;
-    const imageHeight = 120;
+    const imageHeight = 180;
     const gap = 20;
 
     this.isLoading = false;

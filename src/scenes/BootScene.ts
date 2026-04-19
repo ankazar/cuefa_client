@@ -30,9 +30,9 @@ export class BootScene extends BaseScene {
 
               // Загружаем все необходимые ресурсы
             await Assets.load([
-                { alias: 'rock', src: 'assets/images/K.jpg' },
-                { alias: 'scissors', src: 'assets/images/N.jpg' },
-                { alias: 'paper', src: 'assets/images/B.jpg' },
+                { alias: 'rock', src: 'assets/images/rock.png' },
+                { alias: 'scissors', src: 'assets/images/scissors.png' },
+                { alias: 'paper', src: 'assets/images/papper.png' },
                 { alias: 'rays', src: 'assets/images/rays.png'},
                 { alias: 'user_photo', src: user_photo},
                 { alias: 'search_opponent', src: 'assets/images/search_opponent.png'}
