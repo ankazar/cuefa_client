@@ -115,8 +115,7 @@ export class ResultsScene extends BaseScene {
         txt = 'Победа в турнире'
       }
       else{
-        txt = `Вы выиграли ${curTour} тур из ${lastTour}`
-        this.matchData.tournament.curTour += 1; //TODO может перенести где кнопка нажимается
+        txt = `Вы выиграли ${curTour} тур из ${lastTour}`        
       }
 
     const scoreTitle = new Text({
@@ -226,8 +225,8 @@ export class ResultsScene extends BaseScene {
     };
     this.contentContainer.addChild(tournamentsButton);
     }
-
-      const curTour = this.matchData.tournament.curTour;
+    else{
+const curTour = this.matchData.tournament.curTour;
       const lastTour = this.matchData.tournament.lastTour;
     
     if (curTour == lastTour)
@@ -247,12 +246,13 @@ export class ResultsScene extends BaseScene {
       const nextMatchButton = new Button('СЛЕДУЮЩИЙ МАТЧ', 200, 50);
       nextMatchButton.y = buttonsY;
       nextMatchButton.onPress = () => {
+      this.matchData.tournament.curTour += 1; //TODO может перенести где кнопка нажимается
       // Можно вернуться к поиску матча или в меню
       this.emit('change-scene', 'MatchScene', this.matchData.tournament); //TODO переименовать в tournamentData
     };
     this.contentContainer.addChild(nextMatchButton);
     }  
-
+    }
 
   }
 

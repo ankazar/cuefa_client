@@ -50,7 +50,9 @@ export class MatchScene extends BaseScene {
     result: 'win' | 'lose' | 'draw';
 }> = [];
 
-private scoreText!: Text;
+private tournamentToursText!: Text;
+private userscore!: Text;
+private opponentScoreText!: Text;
 private roundText!: Text;
 
   // Пути к изображениям
@@ -119,8 +121,8 @@ async init(tournamentData?: any): Promise<void> {
     
     // Фон на всю ширину экрана
     const playersBg = new Graphics();
-    playersBg.rect(-this.centerX(), -10, screenWidth, 140); // От левого края до правого
-    //playersBg.fill(0x1e2c3a);
+    playersBg.rect(-this.centerX(), -10, screenWidth, 100); // От левого края до правого
+    playersBg.fill(0x000000, 0.4);
     //playersBg.stroke({ width: 2, color: 0x34495e });
     playersContainer.addChild(playersBg);
     
@@ -280,18 +282,7 @@ private updateOpponentCard(data: { name: string; avatarUrl?: string; avatarBase6
             avatar.updateFromAlias('avatar_default');
         }
     }
-    
-    // Обновляем фон карточки
-    //const bg = this.player2Card.children[0] as Graphics;
-    //if (bg) {
-    //    const cardWidth = 130;
-    //    const cardHeight = 45;
-    //    bg.clear();
-    //    bg.roundRect(-cardWidth / 2, 0, cardWidth, cardHeight, 22);
-    //    bg.fill(0x2c3e50);
-    //    bg.stroke({ width: 2, color: 0x2ecc71 });
-    //}
-    
+  
     // Восстанавливаем непрозрачность
     if (this.gameImage2) {
         this.gameImage2.alpha = 1.0;
@@ -368,23 +359,10 @@ private setButtonsActiveState(): void {
     const cardWidth = (this.app.screen.width)/2;
     const cardHeight = 45;
 
-    // Фон карточки
-    const bg = new Graphics();
-    bg.roundRect(-cardWidth / 2, 0, cardWidth, cardHeight, 22);
-    bg.fill(0x2c3e50);
-    bg.stroke({ width: 2, color: color });
-    card.addChild(bg);
-
-    //const avatar = new Sprite();
-
     // Получаем текстуру из кэша
     const avatarAlias = isPlayer ? 'user_photo' : 'search_opponent';
 
-    const avatar = new Avatar(avatarAlias, 32, color);
-
-    //const texture = Assets.cache.get(avaAlias) as Texture;
-    
-   // avatar.texture = texture;
+    const avatar = new Avatar(avatarAlias, 50, color);
 
     // Позиционируем
     const avatarX = isPlayer ? -cardWidth / 2 + 31 : cardWidth / 2 - 31;
@@ -396,22 +374,6 @@ private setButtonsActiveState(): void {
     if (!isPlayer) {
       this.opponentAvatar = avatar;
     }
-
-    //avatar.anchor.set(0.5);
-    //avatar.x = avatarX;
-    //avatar.y = cardHeight / 2;
-    //avatar.width = 50;
-    //avatar.height = 50;
-
-    //// Маска для круглого аватара
-    //const mask = new Graphics();
-    //mask.circle(avatarX, cardHeight / 2, 25);
-    //mask.fill(0xffffff);
-    //card.addChild(mask);
-    //avatar.mask = mask;
-//
-    //card.addChild(avatar);
-    //card.addChild(mask);
 
     // Имя
     const nameText = new Text({
@@ -425,7 +387,7 @@ private setButtonsActiveState(): void {
     });
     nameText.name = 'playerName';
     nameText.anchor.set(isPlayer ? 0 : 1, 0.5);
-    nameText.x = isPlayer ? avatarX + 22 : avatarX - 22;
+    nameText.x = isPlayer ? avatarX + 31 : avatarX - 31;
     nameText.y = cardHeight / 2;
     card.addChild(nameText);
 
@@ -627,40 +589,69 @@ private createScoreDisplay(y: number, parentContainer?: Container): void {
     
     // Фон для счёта
     const scoreBg = new Graphics();
-    scoreBg.roundRect(-45, -20, 90, 45, 8);
-    scoreBg.fill(0x1a252f);
-    scoreBg.stroke({ width: 2, color: 0xf1c40f });
+    scoreBg.roundRect(-45, -50, 90, 100, 0);
+    scoreBg.fill('white');
+    //scoreBg.stroke({ width: 2, color: 0xf1c40f });
     scoreContainer.addChild(scoreBg);
     
     // Счёт
-    this.scoreText = new Text({
-        text: `${this.playerScore} : ${this.opponentScore}`,
+    this.tournamentToursText = new Text({
+        text: `Тур\n${this.tournamentData.curTour}/${this.tournamentData.lastTour}`,
         style: {
-            fill: 0xecf0f1,
+            fill: 'black',
             fontSize: 22,
             fontFamily: 'Arial',
-            fontWeight: 'bold'
+            //fontWeight: 'bold',
+            align: 'center'
         }
     });
-    this.scoreText.anchor.set(0.5);
-    this.scoreText.x = 0;
-    this.scoreText.y = -3;
-    scoreContainer.addChild(this.scoreText);
-    
-    // VS текст маленький
-    const vsText = new Text({
-        text: 'VS',
+    this.tournamentToursText.anchor.set(0.5);
+    this.tournamentToursText.x = 0;
+    this.tournamentToursText.y = -3;
+    scoreContainer.addChild(this.tournamentToursText);
+
+        this.opponentScoreText = new Text({
+        text: this.opponentScore,
         style: {
-            fill: 0xe74c3c,
-            fontSize: 10,
+            fill: 'white',
+            fontSize: 48,
             fontFamily: 'Arial',
             fontWeight: 'bold'
         }
     });
-    vsText.anchor.set(0.5);
-    vsText.x = 0;
-    vsText.y = 12;
-    scoreContainer.addChild(vsText);
+    this.opponentScoreText.anchor.set(0.5);
+    this.opponentScoreText.x = 80;
+    this.opponentScoreText.y = -3;
+    scoreContainer.addChild(this.opponentScoreText);
+//
+        this.userscore = new Text({
+        text: this.playerScore,
+        style: {
+            fill: 'white',
+            fontSize: 48,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
+    });
+    this.userscore.anchor.set(0.5);
+    this.userscore.x = -80;
+    this.userscore.y = -3;
+    scoreContainer.addChild(this.userscore);
+    
+   //// VS текст маленький
+   //const vsText = new Text({
+   //    text: 'VS',
+   //    style: {
+   //        fill: 0xe74c3c,
+   //        fontSize: 10,
+   //        fontFamily: 'Arial',
+   //        fontWeight: 'bold'
+   //    }
+   //});
+   //vsText.anchor.set(0.5);
+   //vsText.x = 0;
+   //vsText.y = 12;
+   //scoreContainer.addChild(vsText);
 }
 
 
@@ -1530,7 +1521,9 @@ private processRoundResult(result: 'win' | 'lose' | 'draw'): void {
     });
     
     // Обновляем отображение счёта
-    this.scoreText.text = `${this.playerScore} : ${this.opponentScore}`;
+    //this.scoreText.text = `${this.playerScore} : ${this.opponentScore}`;
+    this.userscore.text = this.playerScore;
+    this.opponentScoreText.text = this.opponentScore;
     
     // Проверяем, не закончился ли матч
     if (this.playerScore >= this.WIN_SCORE || this.opponentScore >= this.WIN_SCORE) {
