@@ -493,34 +493,6 @@ private setButtonsActiveState(): void {
     }
 }
 
-  private createFallbackTexture(emoji: string, color: number): Texture {
-    const canvas = document.createElement('canvas');
-    canvas.width = 400;
-    canvas.height = 300;
-    const ctx = canvas.getContext('2d')!;
-    
-    ctx.fillStyle = '#' + color.toString(16).padStart(6, '0');
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.2)');
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 0.2)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(2, 2, canvas.width - 4, canvas.height - 4);
-    
-    ctx.font = '80px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(emoji, canvas.width / 2, canvas.height / 2);
-    
-    return Texture.from(canvas);
-  }
-
 private createGameField(): void {
     const fieldY = 190;
     const imageWidth = 180;
@@ -1208,9 +1180,6 @@ private onScissors(): void {
     this.lockActionButtons('scissors');
     this.showActionEffect('НОЖНИЦЫ!', 0x3498db);
     
-    // Обновляем картинку игрока
-    this.updatePlayerImage('scissors');
-    
     // Ход соперника
     this.opponentTurn();
 }
@@ -1221,10 +1190,7 @@ private onPaper(): void {
     this.playerChoice = 'paper';
     this.lockActionButtons('paper');
     this.showActionEffect('БУМАГА!', 0xf1c40f);
-    
-    // Обновляем картинку игрока
-    this.updatePlayerImage('paper');
-    
+       
     // Ход соперника
     this.opponentTurn();
 }
@@ -1368,6 +1334,7 @@ private opponentTurn(): void {
         
         // Обновляем картинку соперника
         this.updateOpponentImage(this.opponentChoice);
+        this.updatePlayerImage(this.playerChoice??''); 
         
         // Показываем выбор соперника
         this.showOpponentChoice(this.opponentChoice);
@@ -1554,14 +1521,6 @@ private showActionEffect(text: string, color: number): void {
     }, 30);
   }
 
-  private createImageBorder(centerX: number, y: number, width: number, height: number, color: number): Graphics {
-    const border = new Graphics();
-    border.rect(centerX - width / 2, y, width, height);
-    border.stroke({ width: 3, color: color });
-    border.fill(0x2c3e50, 0.3);
-    return border;
-  }
-
   private startTimer(): void {
     this.timerInterval = setInterval(() => {
       this.matchTimer--;
@@ -1581,10 +1540,6 @@ private showActionEffect(text: string, color: number): void {
       clearInterval(this.timerInterval);
       this.timerInterval = undefined;
     }
-  }
-
-  private startMatch(): void {
-    console.log('🎮 Начало матча!');
   }
 
 private finishMatch(): void {
