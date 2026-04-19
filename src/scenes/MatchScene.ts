@@ -2,6 +2,7 @@ import { RequestsAPI } from '../core/RequestsAPI';
 import { BaseScene } from './BaseScene';
 import { Graphics, Text, Container, Sprite, Assets, Texture } from 'pixi.js';
 import { UserService } from '../core/UserService';
+import { Avatar } from '../components/Avatar';
 
 export class MatchScene extends BaseScene {
   private background!: Graphics;
@@ -40,6 +41,7 @@ export class MatchScene extends BaseScene {
   private isSearching: boolean = false;
   private opponentData: any = null;
   private border2!: Graphics;
+  private opponentAvatar: Avatar | null = null;
 
   private roundHistory: Array<{
     round: number;
@@ -247,39 +249,50 @@ private showOpponentReadyNotification(): void {
 }
 
 // НОВЫЙ МЕТОД: Обновление карточки соперника
-// ЗАМЕНИТЕ метод updateOpponentCard:
-private updateOpponentCard(data: { name: string }): void {
+private updateOpponentCard(data: { name: string; avatarUrl?: string; avatarBase64?: string }): void {
     console.log('📝 updateOpponentCard вызван с данными:', data);
     
-    const cardWidth = (this.app.screen.width)/2;
-    const cardHeight = 45;
-    
+    // Обновляем имя
     if (this.player2NameText) {
         this.player2NameText.text = data.name;
-        this.player2NameText.style.fill = 0xecf0f1;
-        console.log('✅ Имя соперника обновлено на:', data.name);
     }
     
-    // Обновляем фон карточки - меняем только цвет обводки
-    const bg = this.player2Card.children[0] as Graphics;
-    if (bg) {
-        bg.clear();
-        bg.roundRect(-cardWidth / 2, 0, cardWidth, cardHeight, 22);
-        bg.fill(0x2c3e50);
-        bg.stroke({ width: 2, color: 0x2ecc71 }); // Зелёная обводка
-    }
+    // Получаем аватар из карточки
+    const avatar = this.opponentAvatar;
     
-    // Обновляем аватар - меняем только цвет заливки
-    const avatar = this.player2Card.children[1] as Graphics;
     if (avatar) {
-        avatar.clear();
-        const avatarX = cardWidth / 2 - 22;
-        avatar.circle(avatarX, cardHeight / 2, 16);
-        avatar.fill(0x2ecc71); // Зелёный цвет
-        avatar.stroke({ width: 2, color: 0xffffff });
+        // Меняем цвет обводки на зелёный
+        //avatar.setBorderColor(0x2ecc71);
+        console.log('📝 updateOpponentCard Меняем цвет обводки на зелёный');
+        
+        // Обновляем текстуру
+        if (data.avatarBase64) {
+            // Из Base64
+            console.log('📥 data.avatarBase64 вызван с:', data.avatarBase64.substring(0, 50));
+            avatar.loadFromBase64(data.avatarBase64);
+        } else 
+          if (data.avatarUrl) {
+            // Из URL
+            console.log('📝 updateOpponentCard Из URL');
+            avatar.loadFromUrl(data.avatarUrl);
+        } else {
+            // Дефолтный аватар
+            avatar.updateFromAlias('avatar_default');
+        }
     }
     
-    // Восстанавливаем непрозрачность правого изображения и рамки
+    // Обновляем фон карточки
+    //const bg = this.player2Card.children[0] as Graphics;
+    //if (bg) {
+    //    const cardWidth = 130;
+    //    const cardHeight = 45;
+    //    bg.clear();
+    //    bg.roundRect(-cardWidth / 2, 0, cardWidth, cardHeight, 22);
+    //    bg.fill(0x2c3e50);
+    //    bg.stroke({ width: 2, color: 0x2ecc71 });
+    //}
+    
+    // Восстанавливаем непрозрачность
     if (this.gameImage2) {
         this.gameImage2.alpha = 1.0;
     }
@@ -288,7 +301,6 @@ private updateOpponentCard(data: { name: string }): void {
         this.border2.alpha = 1.0;
     }
     
-    // Скрываем индикатор ожидания
     this.hideOpponentWaiting();
 }
 
@@ -363,29 +375,43 @@ private setButtonsActiveState(): void {
     bg.stroke({ width: 2, color: color });
     card.addChild(bg);
 
-    const avatar = new Sprite();
+    //const avatar = new Sprite();
 
     // Получаем текстуру из кэша
-    const texture = Assets.cache.get('user_photo') as Texture;
-    avatar.texture = texture;
+    const avatarAlias = isPlayer ? 'user_photo' : 'search_opponent';
+
+    const avatar = new Avatar(avatarAlias, 32, color);
+
+    //const texture = Assets.cache.get(avaAlias) as Texture;
+    
+   // avatar.texture = texture;
 
     // Позиционируем
     const avatarX = isPlayer ? -cardWidth / 2 + 31 : cardWidth / 2 - 31;
-    avatar.anchor.set(0.5);
     avatar.x = avatarX;
     avatar.y = cardHeight / 2;
-    avatar.width = 50;
-    avatar.height = 50;
-
-    // Маска для круглого аватара
-    const mask = new Graphics();
-    mask.circle(avatarX, cardHeight / 2, 25);
-    mask.fill(0xffffff);
-    card.addChild(mask);
-    avatar.mask = mask;
-
+    
     card.addChild(avatar);
-    card.addChild(mask);
+
+    if (!isPlayer) {
+      this.opponentAvatar = avatar;
+    }
+
+    //avatar.anchor.set(0.5);
+    //avatar.x = avatarX;
+    //avatar.y = cardHeight / 2;
+    //avatar.width = 50;
+    //avatar.height = 50;
+
+    //// Маска для круглого аватара
+    //const mask = new Graphics();
+    //mask.circle(avatarX, cardHeight / 2, 25);
+    //mask.fill(0xffffff);
+    //card.addChild(mask);
+    //avatar.mask = mask;
+//
+    //card.addChild(avatar);
+    //card.addChild(mask);
 
     // Имя
     const nameText = new Text({
