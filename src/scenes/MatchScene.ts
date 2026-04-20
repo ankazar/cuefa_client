@@ -74,6 +74,9 @@ async init(tournamentData?: any): Promise<void> {
     
     // СРАЗУ показываем игровое поле
     this.createGameField();
+
+    // Три круглые кнопки
+    this.createRoundButtons();
     
     // Блокируем кнопки на время поиска
     this.isActionLocked = true;
@@ -522,9 +525,6 @@ private createGameField(): void {
     
     this.contentContainer.addChild(this.gameImage2);
    
-    // Три круглые кнопки
-    this.createRoundButtons(fieldY + imageHeight + 65);
-
     this.startTimer();
 }
 
@@ -953,13 +953,14 @@ private createChoiceFallbackTexture(choice: string): Texture {
     return Texture.from(canvas);
 }
 
-  private createRoundButtons(y: number): void {
+  private createRoundButtons(): void {
     const buttonRadius = 35;
     const buttonGap = 30;
     
     const buttonsContainer = new Container();
     buttonsContainer.x = 0;
-    buttonsContainer.y = y;
+    //buttonsContainer.y = y;
+    buttonsContainer.y = this.app.screen.height * 0.85 - 5;
     this.contentContainer.addChild(buttonsContainer);
 
     // Кнопка 1 (Камень)
