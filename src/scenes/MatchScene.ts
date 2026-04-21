@@ -118,7 +118,7 @@ async init(tournamentData?: any): Promise<void> {
     
     // Фон на всю ширину экрана
     const playersBg = new Graphics();
-    playersBg.rect(-this.centerX(), -10, screenWidth, 100); // От левого края до правого
+    playersBg.rect(-this.centerX(), -10, screenWidth, this.app.screen.height * 0.15); // От левого края до правого
     playersBg.fill(0x000000, 0.4);
     //playersBg.stroke({ width: 2, color: 0x34495e });
     playersContainer.addChild(playersBg);
@@ -354,18 +354,20 @@ private setButtonsActiveState(): void {
     card.y = y;
 
     const cardWidth = (this.app.screen.width)/2;
-    const cardHeight = 50;
+    const cardHeight = this.app.screen.height * 0.15;
+    const avatarSize = cardHeight * 0.8;
 
     // Получаем текстуру из кэша
     const avatarAlias = isPlayer ? 'user_photo' : 'search_opponent';
 
-    const avatar = new Avatar(avatarAlias, 50, color);
+    const avatar = new Avatar(avatarAlias, avatarSize, color);
 
     // Позиционируем
-    const avatarX = isPlayer ? -cardWidth / 2 + 31 : cardWidth / 2 - 31;
+    const avatarX = isPlayer ? -cardWidth /2 + avatarSize/2 + 5 : cardWidth /2 - avatarSize/2 - 5;
     avatar.x = avatarX;
-    avatar.y = cardHeight / 2;
-    
+    avatar.y = cardHeight / 4;
+
+
     card.addChild(avatar);
 
     if (!isPlayer) {
@@ -377,14 +379,14 @@ private setButtonsActiveState(): void {
         text: name,
         style: {
             fill: 0xecf0f1,
-            fontSize: 14,
+            fontSize: 24,
             fontFamily: 'Arial',
             fontWeight: 'bold'
         }
     });
     nameText.name = 'playerName';
     nameText.anchor.set(isPlayer ? 0 : 1, 0.5);
-    nameText.x = isPlayer ? avatarX + 31 : avatarX - 31;
+    nameText.x = isPlayer ? avatarX + avatarSize/2 + 5 : avatarX - avatarSize/2 - 5;
     nameText.y = cardHeight / 2;
     card.addChild(nameText);
 
