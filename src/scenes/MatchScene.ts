@@ -562,7 +562,7 @@ private createScoreDisplay(y: number, parentContainer?: Container): void {
     });
     this.tournamentToursText.anchor.set(0.5);
     this.tournamentToursText.x = 0;
-    this.tournamentToursText.y = -3;
+    this.tournamentToursText.y = -scoreBoardHeight*0.05;
     scoreContainer.addChild(this.tournamentToursText);
 
         this.opponentScoreText = new Text({
@@ -575,8 +575,8 @@ private createScoreDisplay(y: number, parentContainer?: Container): void {
         }
     });
     this.opponentScoreText.anchor.set(0.5);
-    this.opponentScoreText.x = 80;
-    this.opponentScoreText.y = -3;
+    this.opponentScoreText.x = scoreBoardWidth * 0.8;
+    this.opponentScoreText.y = -scoreBoardHeight*0.03;
     scoreContainer.addChild(this.opponentScoreText);
 //
         this.userscore = new Text({
@@ -589,13 +589,13 @@ private createScoreDisplay(y: number, parentContainer?: Container): void {
         }
     });
     this.userscore.anchor.set(0.5);
-    this.userscore.x = -80;
-    this.userscore.y = -3;
+    this.userscore.x = -scoreBoardWidth * 0.8;
+    this.userscore.y = -scoreBoardHeight*0.03;
     scoreContainer.addChild(this.userscore);
     
    const line = new Graphics();
-   line.moveTo(-40, 22);    // Начальная точка
-   line.lineTo(40, 22);   // Конечная точка
+   line.moveTo(-scoreBoardWidth*0.45, scoreBoardHeight*0.22);    // Начальная точка
+   line.lineTo(scoreBoardWidth*0.45, scoreBoardHeight*0.22);   // Конечная точка
    line.stroke({ width: 1, color: 'DarkGray' });
    scoreContainer.addChild(line);
 
@@ -611,7 +611,7 @@ private createScoreDisplay(y: number, parentContainer?: Container): void {
     });
     this.roundText.anchor.set(0.5);
     this.roundText.x = 0;
-    this.roundText.y = 36;
+    this.roundText.y = scoreBoardHeight*0.36;
     scoreContainer.addChild(this.roundText);
 }
 
