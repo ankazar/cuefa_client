@@ -538,10 +538,13 @@ private createScoreDisplay(y: number, parentContainer?: Container): void {
     scoreContainer.x = 0;
     scoreContainer.y = y;
     targetContainer.addChild(scoreContainer);
+
+    const scoreBoardHeight = this.app.screen.height * 0.15;
+    const scoreBoardWidth = scoreBoardHeight * 0.9;
     
     // Фон для счёта
     const scoreBg = new Graphics();
-    scoreBg.roundRect(-45, -50, 90, 100, 0);
+    scoreBg.roundRect(-scoreBoardWidth/2, -scoreBoardHeight/2, scoreBoardWidth, scoreBoardHeight, 0);
     scoreBg.fill('white');
     //scoreBg.stroke({ width: 2, color: 0xf1c40f });
     scoreContainer.addChild(scoreBg);
