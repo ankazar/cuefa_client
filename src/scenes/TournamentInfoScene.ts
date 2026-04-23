@@ -10,6 +10,7 @@ export class TournamentInfoScene extends BaseScene {
   private backButton!: Button;
   private contentContainer!: Container;
   private tournamentData: any;
+  private scrollContainer!: ScrollContainer;
 
   async init(tournamentData?: any): Promise<void> {
 
@@ -18,7 +19,8 @@ export class TournamentInfoScene extends BaseScene {
     this.createTitle();
     this.createBackButton();
     this.createContent();
-    this.TestScrollContainer();
+    this.createActionButtons();
+    //this.TestScrollContainer();
   } 
 
   private createBackground(): void {
@@ -55,7 +57,7 @@ export class TournamentInfoScene extends BaseScene {
     
     this.title.anchor.set(0.5);
     this.title.x = this.centerX();
-    this.title.y = 80;
+    this.title.y = this.app.screen.height * 0.12;
     this.container.addChild(this.title);
   }
 
@@ -91,15 +93,25 @@ private TestScrollContainer(): void {
   }
 
   private createContent(): void {
-    this.contentContainer = new Container();
-    this.contentContainer.x = this.centerX();
-    this.contentContainer.y = 150;
-    this.container.addChild(this.contentContainer);
+
+    this.scrollContainer = new ScrollContainer(this.app.screen.width * 0.85, this.app.screen.height * 0.55);
+    this.scrollContainer.x = this.centerX();
+    this.scrollContainer.y = this.app.screen.height * 0.2;
+    this.container.addChild(this.scrollContainer);
+
+    //this.contentContainer = new Container();
+    //this.contentContainer.x = this.centerX();
+    //this.contentContainer.y = 150;
+    //this.container.addChild(this.contentContainer);
+
+    this.contentContainer = this.scrollContainer.getContent();
 
     this.createTournamentCard();
     this.createDetailsSection();
     this.createPrizeDistribution();
-    this.createActionButtons();
+    //this.createActionButtons();
+
+    this.scrollContainer.updateScrollbar();
   }
 
   private createTournamentCard(): void {
@@ -108,7 +120,7 @@ private TestScrollContainer(): void {
 
     // Карточка турнира
     const card = new Graphics();
-    card.roundRect(-cardWidth / 2, 0, cardWidth, cardHeight, 15);
+    card.roundRect(0, 0, cardWidth, cardHeight, 15);
     card.fill(0x2c3e50);
     card.stroke({ width: 2, color: 0x3498db });
     this.contentContainer.addChild(card);
@@ -124,7 +136,7 @@ private TestScrollContainer(): void {
       }
     });
     nameText.anchor.set(0.5);
-    nameText.x = 0;
+    nameText.x = cardWidth / 2;
     nameText.y = 25;
     this.contentContainer.addChild(nameText);
 
@@ -146,7 +158,7 @@ private TestScrollContainer(): void {
       }
     });
     statusText.anchor.set(0.5);
-    statusText.x = 0;
+    statusText.x = cardWidth / 2;
     statusText.y = 55;
     this.contentContainer.addChild(statusText);
 
@@ -161,7 +173,7 @@ private TestScrollContainer(): void {
       }
     });
     prizeText.anchor.set(0.5);
-    prizeText.x = 0;
+    prizeText.x = cardWidth / 2;
     prizeText.y = 85;
     this.contentContainer.addChild(prizeText);
   }
@@ -180,7 +192,7 @@ private TestScrollContainer(): void {
         fontWeight: 'bold'
       }
     });
-    detailsTitle.anchor.set(0.5);
+    detailsTitle.anchor.set(0, 0.5);
     detailsTitle.x = 0;
     detailsTitle.y = detailsY;
     this.contentContainer.addChild(detailsTitle);
@@ -203,7 +215,7 @@ private TestScrollContainer(): void {
           fontFamily: 'Arial'
         }
       });
-      detailText.anchor.set(0.5);
+      detailText.anchor.set(0, 0.5);
       detailText.x = 0;
       detailText.y = detailsY + 40 + (index * 30);
       this.contentContainer.addChild(detailText);
@@ -224,7 +236,7 @@ private TestScrollContainer(): void {
         fontWeight: 'bold'
       }
     });
-    prizesTitle.anchor.set(0.5);
+    prizesTitle.anchor.set(0, 0.5);
     prizesTitle.x = 0;
     prizesTitle.y = prizesY;
     this.contentContainer.addChild(prizesTitle);
@@ -239,7 +251,7 @@ private TestScrollContainer(): void {
           fontFamily: 'Arial'
         }
       });
-      prizeText.anchor.set(0.5);
+      prizeText.anchor.set(0, 0.5);
       prizeText.x = 0;
       prizeText.y = prizesY + 30 + (index * 25);
       this.contentContainer.addChild(prizeText);
@@ -247,16 +259,16 @@ private TestScrollContainer(): void {
   }
 
   private createActionButtons(): void {
-    const buttonsY = 480;
+    const buttonsY = this.app.screen.height * 0.85; 
 
     if (this.tournamentData.status === 'available') {
       const joinButton = new Button('ПРИСОЕДИНИТЬСЯ', 200, 50);
-      joinButton.x = 0;
+      joinButton.x = this.centerX();
       joinButton.y = buttonsY;
       joinButton.onPress = () => {
         this.joinTournament();
       };
-      this.contentContainer.addChild(joinButton);
+      this.container.addChild(joinButton);
     } else if (this.tournamentData.status === 'ongoing') {
       const spectateButton = new Button('СМОТРЕТЬ', 180, 45);
       spectateButton.x = -100;
@@ -264,7 +276,7 @@ private TestScrollContainer(): void {
       spectateButton.onPress = () => {
         this.spectateTournament();
       };
-      this.contentContainer.addChild(spectateButton);
+      this.container.addChild(spectateButton);
 
       const joinButton = new Button('ПРИСОЕДИНИТЬСЯ', 180, 45);
       joinButton.x = 100;
@@ -272,7 +284,7 @@ private TestScrollContainer(): void {
       joinButton.onPress = () => {
         this.joinTournament();
       };
-      this.contentContainer.addChild(joinButton);
+      this.container.addChild(joinButton);
     } else if (this.tournamentData.status === 'completed') {
       const resultsButton = new Button('РЕЗУЛЬТАТЫ', 200, 50);
       resultsButton.x = 0;
@@ -280,7 +292,7 @@ private TestScrollContainer(): void {
       resultsButton.onPress = () => {
         this.showResults();
       };
-      this.contentContainer.addChild(resultsButton);
+      this.container.addChild(resultsButton);
     }
   }
 
