@@ -18,7 +18,6 @@ export class ScrollContainer extends Container {
         this.maskWidth = width;
         this.maskHeight = height;
         
-        // Включаем интерактивность для всего контейнера
         this.eventMode = 'static';
         this.cursor = 'grab';
         
@@ -29,10 +28,10 @@ export class ScrollContainer extends Container {
         this.addChild(mask);
         this.mask = mask;
         
-        // Фон области скролла (для захвата событий)
+        // Фон области скролла
         const hitArea = new Graphics();
         hitArea.rect(-width / 2, 0, width, height);
-        hitArea.fill(0x000000, 0.01); // Почти прозрачный
+        hitArea.fill(0x000000, 0.01);
         hitArea.eventMode = 'static';
         this.addChild(hitArea);
         
@@ -45,7 +44,7 @@ export class ScrollContainer extends Container {
         // Контент
         this.content = new Container();
         this.content.x = -width / 2 + 10;
-        this.content.y = 5;
+        this.content.y = 10; // Отступ сверху
         this.addChild(this.content);
         
         // Скролл-бар
@@ -60,11 +59,14 @@ export class ScrollContainer extends Container {
             e.stopPropagation();
         });
         
-        // Глобальные слушатели
         window.addEventListener('pointermove', (e) => {
             if (this.isDraggingArea) {
                 const deltaY = e.clientY - this.startMouseY;
-                this.scrollContentTo(this.startContentY + deltaY);
+                const maxScroll = 10;
+                const minScroll = Math.min(10, this.maskHeight - this.content.height - 10); // +30px отступ снизу
+                const newY = Math.max(minScroll, Math.min(maxScroll, this.startContentY + deltaY));
+                this.content.y = newY;
+                this.updateThumbFromContent();
                 e.preventDefault();
             }
         });
@@ -78,7 +80,11 @@ export class ScrollContainer extends Container {
         
         // Колесико мыши
         this.on('wheel', (e) => {
-            this.scrollBy(e.deltaY * 0.5);
+            const maxScroll = 10;
+            const minScroll = Math.min(10, this.maskHeight - this.content.height - 10);
+            const newY = Math.max(minScroll, Math.min(maxScroll, this.content.y - e.deltaY * 0.5));
+            this.content.y = newY;
+            this.updateThumbFromContent();
             e.stopPropagation();
         });
     }
@@ -87,14 +93,14 @@ export class ScrollContainer extends Container {
         const lineWidth = 2;
         const lineX = width / 2 - 14;
         
-        // === БЕЛАЯ ЛИНИЯ ВМЕСТО СЕРОЙ ПОЛОСКИ ===
+        // Белая линия
         const line = new Graphics();
         line.moveTo(lineX, 0);
         line.lineTo(lineX, height);
         line.stroke({ width: lineWidth, color: 0xffffff, alpha: 0.3 });
         this.addChild(line);
         
-        // Ползунок (оставляем цветным для контраста)
+        // Ползунок
         this.scrollbarThumb = new Graphics();
         this.scrollbarThumb.roundRect(width / 2 - 18, 0, 10, 50, 5);
         this.scrollbarThumb.fill(0x3498db);
@@ -102,7 +108,7 @@ export class ScrollContainer extends Container {
         this.scrollbarThumb.cursor = 'grab';
         this.addChild(this.scrollbarThumb);
         
-        // === ПЕРЕТАСКИВАНИЕ ПОЛЗУНКА ===
+        // Перетаскивание ползунка
         this.scrollbarThumb.on('pointerdown', (e) => {
             this.isDraggingThumb = true;
             this.startMouseY = e.globalY;
@@ -115,15 +121,12 @@ export class ScrollContainer extends Container {
             if (this.isDraggingThumb) {
                 const deltaY = e.clientY - this.startMouseY;
                 const maxThumbY = this.maskHeight - this.scrollbarThumb.height;
-                
-                let newThumbY = this.startThumbY + deltaY;
-                newThumbY = Math.max(0, Math.min(maxThumbY, newThumbY));
-                
+                const newThumbY = Math.max(0, Math.min(maxThumbY, this.startThumbY + deltaY));
                 this.scrollbarThumb.y = newThumbY;
                 
                 const scrollPercent = newThumbY / maxThumbY;
                 const maxContentScroll = this.maskHeight - this.content.height - 10;
-                this.content.y = 5 + scrollPercent * maxContentScroll;
+                this.content.y = 10 + scrollPercent * maxContentScroll;
                 
                 e.preventDefault();
             }
@@ -137,26 +140,18 @@ export class ScrollContainer extends Container {
         });
     }
     
-    private scrollContentTo(y: number): void {
-        const maxScroll = 5;
-        const minScroll = Math.min(5, this.maskHeight - this.content.height + 5);
-        
-        const newY = Math.max(minScroll, Math.min(maxScroll, y));
-        this.content.y = newY;
-        this.updateThumbFromContent();
-    }
-    
-    private scrollBy(delta: number): void {
-        this.scrollContentTo(this.content.y - delta);
-    }
-    
     private updateThumbFromContent(): void {
-        if (this.content.height <= this.maskHeight) return;
+        if (this.content.height <= this.maskHeight) {
+            this.scrollbarThumb.visible = false;
+            return;
+        }
         
-        const scrollRange = this.content.height - this.maskHeight;
-        const scrollPercent = (5 - this.content.y) / scrollRange;
+        this.scrollbarThumb.visible = true;
+        
+        const totalScrollHeight = this.content.height + 10 - this.maskHeight; // +30 отступ
+        const scrollPercent = (10 - this.content.y) / totalScrollHeight;
         const maxThumbY = this.maskHeight - this.scrollbarThumb.height;
-        this.scrollbarThumb.y = scrollPercent * maxThumbY;
+        this.scrollbarThumb.y = Math.max(0, Math.min(maxThumbY, scrollPercent * maxThumbY));
     }
     
     getContent(): Container {
@@ -164,7 +159,10 @@ export class ScrollContainer extends Container {
     }
     
     updateScrollbar(): void {
-        const contentHeight = this.content.height + 10;
+        // Принудительно обновляем границы контента
+        this.content.getLocalBounds();
+        
+        const contentHeight = this.content.height + 10; // +30px отступ снизу
         
         if (contentHeight <= this.maskHeight) {
             this.scrollbarThumb.visible = false;
