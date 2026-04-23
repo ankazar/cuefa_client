@@ -24,7 +24,7 @@ class Game {
       await this.app.init({
         width: 800,
         height: 600,
-        backgroundColor: 0x1a1a1a,
+        backgroundColor: 0x004bbc,
         resizeTo: window
       });
 
