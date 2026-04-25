@@ -61,26 +61,6 @@ export class TournamentInfoScene extends BaseScene {
     this.container.addChild(this.title);
   }
 
-private TestScrollContainer(): void {
-    const scroll = new ScrollContainer(400, 300);
-    scroll.x = this.centerX();
-    scroll.y = 400;
-    
-    const content = scroll.getContent();
-    
-    for (let i = 0; i < 25; i++) {
-        const text = new Text({
-            text: `Строка ${i + 1}`,
-            style: { fill: 0xffffff, fontSize: 18 }
-        });
-        text.y = i * 35;
-        content.addChild(text);
-    }
-    
-    scroll.updateScrollbar();
-    this.container.addChild(scroll);
-}
-
   private createBackButton(): void {
     this.backButton = new Button('Назад', 120, 40);
     this.backButton.x = 80;
@@ -99,17 +79,11 @@ private TestScrollContainer(): void {
     this.scrollContainer.y = this.app.screen.height * 0.2;
     this.container.addChild(this.scrollContainer);
 
-    //this.contentContainer = new Container();
-    //this.contentContainer.x = this.centerX();
-    //this.contentContainer.y = 150;
-    //this.container.addChild(this.contentContainer);
-
     this.contentContainer = this.scrollContainer.getContent();
 
     this.createTournamentCard();
     this.createDetailsSection();
     this.createPrizeDistribution();
-    //this.createActionButtons();
 
     this.scrollContainer.updateScrollbar();
   }
