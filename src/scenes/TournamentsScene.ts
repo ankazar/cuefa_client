@@ -21,7 +21,7 @@ export class TournamentsScene extends BaseScene {
 private createTournamentsList(): void {
     
     this.tournamentsContainer = new ScrollContainer(
-        this.app.screen.width * 0.85, 
+        this.app.screen.width * 0.90,  // Чуть шире для двух карточек
         this.app.screen.height * 0.7
     );
     this.tournamentsContainer.x = this.centerX();
@@ -30,30 +30,127 @@ private createTournamentsList(): void {
 
     const tournaments = RequestsAPI.GetTournamentListForUser();
     
-    // Получаем контент скролла
     const scrollContent = this.tournamentsContainer.getContent();
+    
+    // Настройки сетки    
+    const cardWidth = this.tournamentsContainer.width * 0.45 // Ширина одной карточки
+    const cardHeight = this.tournamentsContainer.height * 0.8;      // Высота карточки
+    const gapX = this.tournamentsContainer.width * 0.05;             // Отступ между карточками по горизонтали
+    const gapY = this.tournamentsContainer.width * 0.05;              // Отступ между рядами
+    const cardsPerRow = 2;       // Количество карточек в ряду
 
     tournaments.forEach((tournament, index) => {
-        this.createInteractiveCard(tournament, index, scrollContent);
+        const row = Math.floor(index / cardsPerRow);
+        const col = index % cardsPerRow;
+        
+        const x = col * (cardWidth + gapX);
+        const y = row * (cardHeight + gapY);
+        
+        this.createCompactCard(tournament, x, y, cardWidth, cardHeight, scrollContent);
     });
 
     this.tournamentsContainer.updateScrollbar();
 }
 
-private createInteractiveCard(tournament: any, index: number, parent: Container): void {
-    const itemY = index * 110;
-    const itemWidth = 520;
-    const itemHeight = 95;
-
+private createCompactCard(
+    tournament: any, 
+    x: number, 
+    y: number, 
+    width: number, 
+    height: number, 
+    parent: Container
+): void {
     const card = new Container();
-    card.y = itemY;
-    parent.addChild(card);  // ← ВАЖНО: добавляем в scrollContent
+    card.x = x;
+    card.y = y;
+    parent.addChild(card);
 
-    const bg = this.createCardBackground(itemWidth, itemHeight, tournament.status);
+    // Фон
+    const bg = this.createCardBackground(width, height, tournament.status);
     card.addChild(bg);
 
-    this.addCardContent(card, tournament, itemWidth, itemHeight);
-    this.setupCardInteractivity(card, bg, tournament, itemWidth, itemHeight);
+    // Иконка турнира сверху по центру
+    const iconText = new Text({
+        text: '🏆',
+        style: {
+            fontSize: 36,
+            fontFamily: 'Arial'
+        }
+    });
+    iconText.anchor.set(0.5);
+    iconText.x = width / 2;
+    iconText.y = 35;
+    card.addChild(iconText);
+
+    // Название турнира
+    const nameText = new Text({
+        text: tournament.name,
+        style: {
+            fill: 0xecf0f1,
+            fontSize: 16,
+            fontFamily: 'Arial',
+            fontWeight: 'bold',
+            align: 'center'
+        }
+    });
+    nameText.anchor.set(0.5);
+    nameText.x = width / 2;
+    nameText.y = 70;
+    card.addChild(nameText);
+
+    // Приз
+    const prizeText = new Text({
+        text: `🏆 ${tournament.prize}`,
+        style: {
+            fill: 0xf1c40f,
+            fontSize: 14,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
+    });
+    prizeText.anchor.set(0.5);
+    prizeText.x = width / 2;
+    prizeText.y = 95;
+    card.addChild(prizeText);
+
+    // Участники и время
+    const infoText = new Text({
+        text: `👥 ${tournament.players} • ⏰ ${tournament.time}`,
+        style: {
+            fill: 0xbdc3c7,
+            fontSize: 11,
+            fontFamily: 'Arial'
+        }
+    });
+    infoText.anchor.set(0.5);
+    infoText.x = width / 2;
+    infoText.y = 118;
+    card.addChild(infoText);
+
+    // Статус
+    const statusConfig = {
+        available: { text: '✅ ДОСТУПЕН', color: 0x2ecc71 },
+        ongoing: { text: '⚡ ИДЕТ', color: 0xe74c3c },
+        completed: { text: '📋 ЗАВЕРШЕН', color: 0x95a5a6 }
+    };
+
+    const status = statusConfig[tournament.status as keyof typeof statusConfig];
+    const statusText = new Text({
+        text: status.text,
+        style: {
+            fill: status.color,
+            fontSize: 11,
+            fontFamily: 'Arial',
+            fontWeight: 'bold'
+        }
+    });
+    statusText.anchor.set(0.5);
+    statusText.x = width / 2;
+    statusText.y = 138;
+    card.addChild(statusText);
+
+    // Интерактивность
+    this.setupCardInteractivity(card, bg, tournament, width, height);
 }
 
   private createCardBackground(width: number, height: number, status: string): Graphics {
