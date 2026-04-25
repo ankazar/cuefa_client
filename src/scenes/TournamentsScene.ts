@@ -2,51 +2,59 @@ import { BaseScene } from './BaseScene';
 import { Graphics, Text, Container, Texture, Assets, Sprite } from 'pixi.js';
 import { Button } from '../components/Button';
 import { RequestsAPI } from '../core/RequestsAPI';
+import { ScrollContainer } from '../components/ScrollContainer';
 
 export class TournamentsScene extends BaseScene {
   private background!: Graphics;
   private title!: Text;
   private backButton!: Button;
-  private tournamentsContainer!: Container;
+  private tournamentsContainer!: ScrollContainer;
 
   async init(): Promise<void> {
     this.createBackground();
     this.createTitle();
     this.createBackButton();
     this.createTournamentsList();
-    this.centerTournamentsList();
+    //this.centerTournamentsList();
   }
 
-  private createTournamentsList(): void {
-    this.tournamentsContainer = new Container();
+private createTournamentsList(): void {
+    
+    this.tournamentsContainer = new ScrollContainer(
+        this.app.screen.width * 0.85, 
+        this.app.screen.height * 0.7
+    );
+    this.tournamentsContainer.x = this.centerX();
+    this.tournamentsContainer.y = this.app.screen.height * 0.2;
     this.container.addChild(this.tournamentsContainer);
 
-    const tournaments = RequestsAPI.GetTournamentListForUser();    
+    const tournaments = RequestsAPI.GetTournamentListForUser();
+    
+    // Получаем контент скролла
+    const scrollContent = this.tournamentsContainer.getContent();
 
     tournaments.forEach((tournament, index) => {
-      this.createInteractiveCard(tournament, index);
+        this.createInteractiveCard(tournament, index, scrollContent);
     });
-  }
 
-  private createInteractiveCard(tournament: any, index: number): void {
+    this.tournamentsContainer.updateScrollbar();
+}
+
+private createInteractiveCard(tournament: any, index: number, parent: Container): void {
     const itemY = index * 110;
     const itemWidth = 520;
     const itemHeight = 95;
 
     const card = new Container();
     card.y = itemY;
-    this.tournamentsContainer.addChild(card);
+    parent.addChild(card);  // ← ВАЖНО: добавляем в scrollContent
 
-    // Фон с градиентом
     const bg = this.createCardBackground(itemWidth, itemHeight, tournament.status);
     card.addChild(bg);
 
-    // Контент карточки
     this.addCardContent(card, tournament, itemWidth, itemHeight);
-
-    // Интерактивность
     this.setupCardInteractivity(card, bg, tournament, itemWidth, itemHeight);
-  }
+}
 
   private createCardBackground(width: number, height: number, status: string): Graphics {
     const bg = new Graphics();
