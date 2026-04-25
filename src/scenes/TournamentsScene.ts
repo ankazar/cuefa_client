@@ -217,7 +217,7 @@ export class TournamentsScene extends BaseScene {
       text: 'ТУРНИРЫ',
       style: {
         fill: 0xecf0f1,
-        fontSize: 48,
+        fontSize: Math.round(this.app.screen.height * 0.11),
         fontFamily: 'Arial',
         fontWeight: 'bold',
         stroke: 0x2c3e50,
@@ -227,7 +227,7 @@ export class TournamentsScene extends BaseScene {
     
     this.title.anchor.set(0.5);
     this.title.x = this.centerX();
-    this.title.y = 100;
+    this.title.y = this.app.screen.height * 0.10;
     this.container.addChild(this.title);
   }
 
