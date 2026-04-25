@@ -1,15 +1,10 @@
 import { BaseScene } from './BaseScene';
-import { Graphics, Text, Assets } from 'pixi.js';
+import { Graphics, Text, Assets, Sprite } from 'pixi.js';
 import { UserService } from '../core/UserService';
 import { RequestsAPI } from '../core/RequestsAPI';
 
 export class BootScene extends BaseScene {
   async init(): Promise<void> {
-    // Создаем простой загрузочный экран
-    const background = new Graphics();
-    background.rect(0, 0, this.app.screen.width, this.app.screen.height);
-    background.fill(0x004bbc);
-    this.container.addChild(background);
 
     const userId = 1; //TODO получить от апи
     
@@ -50,7 +45,36 @@ export class BootScene extends BaseScene {
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
-      private showLoadingScreen(): void {
+      private async showLoadingScreen(): Promise<void> {
+        
+      const texture = await Assets.load('assets/images/load2.png');
+
+      const background = new Graphics();
+      background.rect(0, 0, this.app.screen.width, this.app.screen.height);
+      background.fill(0x004bbc);
+      this.container.addChild(background);
+      
+      if (texture) {
+          const loadingImage = new Sprite(texture);
+
+          const scaleX = this.app.screen.width / texture.width;
+          const scaleY = this.app.screen.height / texture.height;
+          const scale = Math.min(scaleX, scaleY); // Берём меньшее
+
+          loadingImage.scale.set(scale);
+
+          // Центрируем
+          loadingImage.x = (this.app.screen.width - texture.width * scale) / 2;
+          loadingImage.y = (this.app.screen.height - texture.height * scale) / 2;
+
+          //loadingImage.anchor.set(0.5);
+          //loadingImage.x = this.centerX();
+          //loadingImage.y = this.centerY() - 50;
+          //loadingImage.width = 100;
+          //loadingImage.height = 100;
+          this.container.addChild(loadingImage);
+      }
+        
         const loadingText = new Text({
             text: 'Загрузка...',
             style: { fill: 0xffffff, fontSize: 24 }
