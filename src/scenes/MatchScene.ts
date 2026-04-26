@@ -499,9 +499,9 @@ private setButtonsActiveState(): void {
 }
 
 private createGameField(): void {
-    const fieldY = 190;
-    const imageWidth = 180;
-    const imageHeight = 180;
+    const fieldY = this.app.screen.height/2;
+    const imageWidth = this.app.screen.height/2;
+    const imageHeight = this.app.screen.height/2;
     const gap = 20;
 
     this.isLoading = false;
@@ -511,7 +511,7 @@ private createGameField(): void {
     this.gameImage1.width = imageWidth;
     this.gameImage1.height = imageHeight;
     this.gameImage1.x = -imageWidth / 2 - gap / 2;
-    this.gameImage1.y = fieldY + imageHeight / 2;
+    this.gameImage1.y = fieldY;
     
     this.contentContainer.addChild(this.gameImage1);
 
@@ -520,7 +520,7 @@ private createGameField(): void {
     this.gameImage2.width = imageWidth;
     this.gameImage2.height = imageHeight;
     this.gameImage2.x = imageWidth / 2 + gap / 2;
-    this.gameImage2.y = fieldY + imageHeight / 2;
+    this.gameImage2.y = fieldY;
     
     // ДЕЛАЕМ ПРАВОЕ ИЗОБРАЖЕНИЕ ПОЛУПРОЗРАЧНЫМ
     this.gameImage2.alpha = 0.4;
