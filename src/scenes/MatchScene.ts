@@ -94,6 +94,17 @@ async init(tournamentData?: any): Promise<void> {
     this.background.rect(0, 0, this.app.screen.width, this.app.screen.height);
     this.background.fill(0x004bbc);
     this.container.addChild(this.background);
+
+    const texture = Assets.cache.get('rays') as Texture;
+
+    const imageBg = new Sprite(texture);
+    imageBg.width = this.app.screen.width*2;
+    imageBg.height = this.app.screen.height*2;
+    imageBg.x = this.centerX()
+    imageBg.y = this.centerY() 
+    imageBg.anchor.set(0.5)
+    //imageBg.alpha = 0.3; // 30% прозрачности
+    this.container.addChild(imageBg);
   }
 
   private createContentContainer(): void {

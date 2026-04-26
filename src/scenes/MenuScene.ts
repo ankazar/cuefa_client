@@ -25,7 +25,7 @@ export class MenuScene extends BaseScene {
     imageBg.width = this.app.screen.width*2;
     imageBg.height = this.app.screen.height*2;
     imageBg.x = this.centerX()
-    imageBg.y = this.centerY() -50
+    imageBg.y = this.centerY() 
     imageBg.anchor.set(0.5)
     //imageBg.alpha = 0.3; // 30% прозрачности
     this.container.addChild(imageBg);
