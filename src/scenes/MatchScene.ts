@@ -118,7 +118,7 @@ async init(tournamentData?: any): Promise<void> {
     
     // Фон на всю ширину экрана
     const playersBg = new Graphics();
-    playersBg.rect(-this.centerX(), -10, screenWidth, this.app.screen.height * 0.15); // От левого края до правого
+    playersBg.rect(-this.centerX(), 0, screenWidth, this.app.screen.height * 0.15); // От левого края до правого
     playersBg.fill(0x000000, 0.4);
     //playersBg.stroke({ width: 2, color: 0x34495e });
     playersContainer.addChild(playersBg);
@@ -137,7 +137,7 @@ async init(tournamentData?: any): Promise<void> {
     playersContainer.addChild(this.player2Card);
 
         // Счёт и раунд - по центру
-    this.createScoreDisplay(40, playersContainer);
+    this.createScoreDisplay(playersContainer);
     
     // Сохраняем ссылки на текстовые элементы
     this.player2NameText = this.player2Card.getChildByName('playerName') as Text;
@@ -379,7 +379,7 @@ private setButtonsActiveState(): void {
         text: name,
         style: {
             fill: 0xecf0f1,
-            fontSize: 24,
+            fontSize: Math.round(this.app.screen.height * 0.045),
             fontFamily: 'Arial',
             fontWeight: 'bold'
         }
@@ -387,7 +387,7 @@ private setButtonsActiveState(): void {
     nameText.name = 'playerName';
     nameText.anchor.set(isPlayer ? 0 : 1, 0.5);
     nameText.x = isPlayer ? avatarX + avatarSize/2 + 5 : avatarX - avatarSize/2 - 5;
-    nameText.y = cardHeight / 2;
+    nameText.y = cardHeight / 4;
     card.addChild(nameText);
 
     return card;
@@ -530,13 +530,13 @@ private createGameField(): void {
     this.startTimer();
 }
 
-private createScoreDisplay(y: number, parentContainer?: Container): void {
+private createScoreDisplay(parentContainer?: Container): void {
     const targetContainer = parentContainer || this.contentContainer;
     
     // Контейнер для счёта и раунда
     const scoreContainer = new Container();
     scoreContainer.x = 0;
-    scoreContainer.y = y;
+    scoreContainer.y = targetContainer.height/2;
     targetContainer.addChild(scoreContainer);
 
     const scoreBoardHeight = this.app.screen.height * 0.15;
