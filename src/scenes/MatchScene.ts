@@ -856,14 +856,7 @@ private unlockActionButtons(): void {
         button.scale.set(1.0);
         button.alpha = 1.0;
         
-        const bg = button.getChildByName('bg') as Graphics;
-        const color = colors[button.actionType as string] || 0x7f8c8d;
-        const radius = 35;
-        
-        bg.clear();
-        bg.circle(0, 0, radius);
-        bg.fill(color);
-        bg.stroke({ width: 3, color: 0xffffff });
+
     });
 }
 
@@ -970,7 +963,7 @@ private createChoiceFallbackTexture(choice: string): Texture {
 }
 
   private createRoundButtons(): void {
-    const buttonRadius = 35;
+    const buttonRadius = this.app.screen.height * 0.10;
     const buttonGap = 30;
     
     const buttonsContainer = new Container();
@@ -981,7 +974,7 @@ private createChoiceFallbackTexture(choice: string): Texture {
 
     // Кнопка 1 (Камень)
     const rockButton = this.createRoundButton(
-      '✊',
+      'rock_btn',
       0x3498db,
       -buttonRadius * 2 - buttonGap,
       0,
@@ -999,7 +992,7 @@ private createChoiceFallbackTexture(choice: string): Texture {
 
     // Кнопка 2 (Ножницы)
     const scissorsButton = this.createRoundButton(
-      '✌️',
+      'scissors_btn',
       0x3498db,
       0,
       0,
@@ -1017,7 +1010,7 @@ private createChoiceFallbackTexture(choice: string): Texture {
 
     // Кнопка 3 (Бумага)
     const paperButton = this.createRoundButton(
-      '🤚',
+      'paper_btn',
       0x3498db,
       buttonRadius * 2 + buttonGap,
       0,
@@ -1034,14 +1027,14 @@ private createChoiceFallbackTexture(choice: string): Texture {
     this.actionButtons.push(paperButton);
   }
 
-  private createRoundButton(
-    emoji: string, 
+private createRoundButton(
+    textureAlias: string,    // Алиас текстуры в кэше
     color: number, 
     x: number, 
     y: number, 
     radius: number,
     actionType: string
-  ): Container & { onPress?: () => void; actionType?: string } {
+): Container & { onPress?: () => void; actionType?: string } {
     const button = new Container() as Container & { onPress?: () => void; actionType?: string };
     button.actionType = actionType;
     button.x = x;
@@ -1049,96 +1042,80 @@ private createChoiceFallbackTexture(choice: string): Texture {
     button.eventMode = 'static';
     button.cursor = 'pointer';
     
-    // Тень
-    const shadow = new Graphics();
-    shadow.name = 'shadow';
-    shadow.circle(3, 3, radius);
-    shadow.fill(0x000000, 0.3);
-    button.addChild(shadow);
     
-    // Основной круг
-    const bg = new Graphics();
-    bg.name = 'bg';
-    bg.circle(0, 0, radius);
-    bg.fill(color);
-    bg.stroke({ width: 3, color: 0xffffff });
-    button.addChild(bg);
+    // Картинка из ассета
+    const texture = Assets.cache.get(textureAlias) as Texture;
+    if (texture) {
+        const image = new Sprite(texture);
+        image.name = 'buttonImage';
+        image.anchor.set(0.5);
+        image.x = 0;
+        image.y = 0;
+        image.width = radius * 2;   // Чуть больше половины радиуса
+        image.height = radius * 2;
+        button.addChild(image);
+    } else {
+        // Fallback: эмодзи если текстура не найдена
+        const fallbackText = new Text({
+            text: '?',
+            style: {
+                fontSize: radius,
+                fontFamily: 'Arial'
+            }
+        });
+        fallbackText.name = 'label';
+        fallbackText.anchor.set(0.5);
+        fallbackText.x = 0;
+        fallbackText.y = 0;
+        button.addChild(fallbackText);
+    }
     
-    // Внутренний круг (блик)
+    // Внутренний блик
     const inner = new Graphics();
     inner.name = 'inner';
     inner.circle(-3, -3, radius - 6);
     inner.fill(0xffffff, 0.15);
     button.addChild(inner);
     
-    // Эмодзи
-    const label = new Text({
-      text: emoji,
-      style: {
-        fontSize: 32,
-        fontFamily: 'Arial'
-      }
-    });
-    label.name = 'label';
-    label.anchor.set(0.5);
-    label.x = 0;
-    label.y = 0;
-    button.addChild(label);
-    
+    // События
     let isPressed = false;
     
     button.on('pointerover', () => {
-      if (!this.isActionLocked && !isPressed) {
-        const bg = button.getChildByName('bg') as Graphics;
-        bg.clear();
-        bg.circle(0, 0, radius);
-        bg.fill(color);
-        bg.stroke({ width: 4, color: 0xffd700 });
-        button.scale.set(1.1);
-      }
+        if (!this.isActionLocked && !isPressed) {
+
+            button.scale.set(1.1);
+        }
     });
     
     button.on('pointerout', () => {
-      if (!this.isActionLocked && !isPressed) {
-        const bg = button.getChildByName('bg') as Graphics;
-        bg.clear();
-        bg.circle(0, 0, radius);
-        bg.fill(color);
-        bg.stroke({ width: 3, color: 0xffffff });
-        button.scale.set(1.0);
-      }
+        if (!this.isActionLocked && !isPressed) {
+
+            button.scale.set(1.0);
+        }
     });
     
     button.on('pointerdown', () => {
-      if (!this.isActionLocked) {
-        isPressed = true;
-        button.scale.set(0.95);
-        const bg = button.getChildByName('bg') as Graphics;
-        bg.clear();
-        bg.circle(0, 0, radius);
-        bg.fill(color);
-        bg.stroke({ width: 3, color: 0xffd700 });
-      }
+        if (!this.isActionLocked) {
+            isPressed = true;
+            button.scale.set(0.95);
+
+        }
     });
     
     button.on('pointerup', () => {
-      if (!this.isActionLocked) {
-        isPressed = false;
-        button.scale.set(1.0);
-        const bg = button.getChildByName('bg') as Graphics;
-        bg.clear();
-        bg.circle(0, 0, radius);
-        bg.fill(color);
-        bg.stroke({ width: 3, color: 0xffffff });
-        
-        if (button.onPress) {
-          button.onPress();
+        if (!this.isActionLocked) {
+            isPressed = false;
+            button.scale.set(1.0);
+
+            
+            if (button.onPress) {
+                button.onPress();
+            }
         }
-      }
     });
     
     return button;
-  }
+}
 
   private lockActionButtons(selectedType?: string): void {
     this.isActionLocked = true;
@@ -1148,7 +1125,7 @@ private createChoiceFallbackTexture(choice: string): Texture {
       button.eventMode = 'none';
       button.cursor = 'default';
       
-      const bg = button.getChildByName('bg') as Graphics;
+
       const radius = 35;
       let color: number;
       
@@ -1158,13 +1135,7 @@ private createChoiceFallbackTexture(choice: string): Texture {
         color = 0x7f8c8d; // Серый для остальных
       }
       
-      bg.clear();
-      bg.circle(0, 0, radius);
-      bg.fill(color);
-      bg.stroke({ 
-        width: 3, 
-        color: button.actionType === selectedType ? 0xffd700 : 0x95a5a6 
-      });
+
       
       if (button.actionType !== selectedType) {
         button.scale.set(0.9);
