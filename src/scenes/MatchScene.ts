@@ -554,7 +554,7 @@ private createScoreDisplay(y: number, parentContainer?: Container): void {
         text: `Тур\n${this.tournamentData.curTour}/${this.tournamentData.lastTour}`,
         style: {
             fill: 'black',
-            fontSize: 22,
+            fontSize: Math.round(this.app.screen.height * 0.04),
             fontFamily: 'Arial',
             //fontWeight: 'bold',
             align: 'center'
@@ -569,7 +569,7 @@ private createScoreDisplay(y: number, parentContainer?: Container): void {
         text: this.opponentScore,
         style: {
             fill: 'white',
-            fontSize: 48,
+            fontSize: Math.round(this.app.screen.height * 0.09),
             fontFamily: 'Arial',
             fontWeight: 'bold'
         }
@@ -583,7 +583,7 @@ private createScoreDisplay(y: number, parentContainer?: Container): void {
         text: this.playerScore,
         style: {
             fill: 'white',
-            fontSize: 48,
+            fontSize: Math.round(this.app.screen.height * 0.09),
             fontFamily: 'Arial',
             fontWeight: 'bold'
         }
@@ -603,7 +603,7 @@ private createScoreDisplay(y: number, parentContainer?: Container): void {
         text: `Раунд ${1}`,
         style: {
             fill: 'black',
-            fontSize: 12,
+            fontSize: Math.round(this.app.screen.height * 0.025),
             fontFamily: 'Arial',
             fontWeight: 'bold',
             align: 'center'
