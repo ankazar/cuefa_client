@@ -1154,8 +1154,6 @@ private onRock(): void {
     this.lockActionButtons('rock');
     this.showActionEffect('КАМЕНЬ!', 0xe74c3c);
     
-    // Картинка игрока уже камень, но можно добавить эффект подтверждения
-    this.highlightPlayerChoice();
     
     // Ход соперника
     this.opponentTurn();
@@ -1188,50 +1186,16 @@ private updatePlayerImage(choice: string): void {
         const texture = Assets.cache.get(choice) as Texture;
         if (texture) {
             this.gameImage1.texture = texture;
-            // Добавляем подсветку после смены картинки
-            this.highlightPlayerChoice();
         } else {
             this.gameImage1.texture = this.createChoiceFallbackTexture(choice);
-            this.highlightPlayerChoice();
         }
     } catch (error) {
         console.error('Ошибка при обновлении картинки игрока:', error);
         this.gameImage1.texture = this.createChoiceFallbackTexture(choice);
-        this.highlightPlayerChoice();
     }
 }
 
-private highlightPlayerChoice(): void {
-    // Добавляем эффект свечения вокруг картинки игрока
-    const glow = new Graphics();
-    glow.name = 'playerGlow';
-    glow.circle(this.gameImage1.x, this.gameImage1.y, 75);
-    glow.stroke({ width: 4, color: 0xffd700 });
-    glow.fill(0xffd700, 0.1);
-    this.contentContainer.addChild(glow);
-    
-    // Анимация свечения
-    let alpha = 0.1;
-    let increasing = true;
-    
-    const glowInterval = setInterval(() => {
-        if (!glow.destroyed) {
-            if (increasing) {
-                alpha += 0.02;
-                if (alpha >= 0.3) increasing = false;
-            } else {
-                alpha -= 0.02;
-                if (alpha <= 0.1) increasing = true;
-            }
-            glow.clear();
-            glow.circle(this.gameImage1.x, this.gameImage1.y, 75);
-            glow.stroke({ width: 4, color: 0xffd700 });
-            glow.fill(0xffd700, alpha);
-        }
-    }, 50);
-    
-    (glow as any).glowInterval = glowInterval;
-}
+
 
 private removePlayerHighlight(): void {
     const glow = this.contentContainer.getChildByName('playerGlow');
@@ -1253,59 +1217,11 @@ private updateOpponentImage(choice: string): void {
             this.gameImage2.texture = this.createChoiceFallbackTexture(choice);
         }
         
-        // Добавляем эффект появления выбора соперника
-        this.highlightOpponentChoice();
-        
     } catch (error) {
         console.error('Ошибка при обновлении картинки соперника:', error);
         this.gameImage2.texture = this.createChoiceFallbackTexture(choice);
-        this.highlightOpponentChoice();
     }
 }
-
-private highlightOpponentChoice(): void {
-    const glow = new Graphics();
-    glow.name = 'opponentGlow';
-    glow.circle(this.gameImage2.x, this.gameImage2.y, 75);
-    glow.stroke({ width: 4, color: 0xe74c3c });
-    glow.fill(0xe74c3c, 0.1);
-    this.contentContainer.addChild(glow);
-    
-    // Анимация
-    let alpha = 0.1;
-    let increasing = true;
-    
-    const glowInterval = setInterval(() => {
-        if (!glow.destroyed) {
-            if (increasing) {
-                alpha += 0.03;
-                if (alpha >= 0.4) increasing = false;
-            } else {
-                alpha -= 0.03;
-                if (alpha <= 0.1) increasing = true;
-            }
-            glow.clear();
-            glow.circle(this.gameImage2.x, this.gameImage2.y, 75);
-            glow.stroke({ width: 4, color: 0xe74c3c });
-            glow.fill(0xe74c3c, alpha);
-        }
-    }, 50);
-    
-    (glow as any).glowInterval = glowInterval;
-    
-    // Удаляем подсветку через 2 секунды
-    setTimeout(() => {
-        const glow = this.contentContainer.getChildByName('opponentGlow');
-        if (glow) {
-            if ((glow as any).glowInterval) {
-                clearInterval((glow as any).glowInterval);
-            }
-            this.contentContainer.removeChild(glow);
-            glow.destroy();
-        }
-    }, 2000);
-}
-
 
 private opponentTurn(): void {
     // Убираем подсветку игрока
