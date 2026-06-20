@@ -87,6 +87,8 @@ async init(tournamentData?: any): Promise<void> {
     
     // Ждём соперника (не блокируя интерфейс)
     this.waitForOpponent();
+
+    this.createSimpleOrbit();
 }
 
   private createBackground(): void {
@@ -509,6 +511,30 @@ private setButtonsActiveState(): void {
     }
 }
 
+private getPointOnRay(
+    x1: number, y1: number,   // Начало линии
+    x2: number, y2: number,   // Конец линии
+    distance: number           // На сколько отступить ОТ x2,y2
+): { x: number; y: number } {
+    
+    // 1. Вектор направления (от x1,y1 к x2,y2)
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    
+    // 2. Длина линии
+    const length = Math.sqrt(dx * dx + dy * dy);
+    
+    // 3. Нормализованный вектор (единичной длины)
+    const nx = dx / length;
+    const ny = dy / length;
+    
+    // 4. Новая точка = конец линии + направление * расстояние
+    return {
+        x: x2 + nx * distance,
+        y: y2 + ny * distance
+    };
+}
+
 private createGameField(): void {
     const fieldY = this.app.screen.height/2;
     const imageWidth = this.app.screen.height/2;
@@ -521,25 +547,143 @@ private createGameField(): void {
     this.gameImage1.anchor.set(0.5);
     this.gameImage1.width = imageWidth;
     this.gameImage1.height = imageHeight;
-    this.gameImage1.x = -imageWidth / 2 - gap / 2;
-    this.gameImage1.y = fieldY;
+    this.gameImage1.x = -imageWidth / 2 //- gap / 2;
+    this.gameImage1.y = fieldY; 
+
+    const border1 = new Graphics();
+    const bounds1 = this.gameImage1.getBounds();
+
+    // Верхняя
+    border1.moveTo(bounds1.x, bounds1.y);
+    border1.lineTo(bounds1.x + bounds1.width, bounds1.y);
+    // Правая
+    border1.moveTo(bounds1.x + bounds1.width, bounds1.y);
+    border1.lineTo(bounds1.x + bounds1.width, bounds1.y + bounds1.height);
+    // Нижняя
+    border1.moveTo(bounds1.x + bounds1.width, bounds1.y + bounds1.height);
+    border1.lineTo(bounds1.x, bounds1.y + bounds1.height);
+    // Левая
+    border1.moveTo(bounds1.x, bounds1.y + bounds1.height);
+    border1.lineTo(bounds1.x, bounds1.y);
+
+    border1.moveTo(bounds1.x + bounds1.width/2, bounds1.y + bounds1.height/2);
+    border1.lineTo(bounds1.x, bounds1.y + bounds1.height * 0.8);
+
+    border1.stroke({ width: 2, color: 0x3498db });
+
+    const distance1 = Math.hypot(bounds1.x - (bounds1.x + bounds1.width/2), (bounds1.y + bounds1.height * 0.8) - (bounds1.y + bounds1.height/2)) * 2;
+
+    // Точка на продолжении
+    //const extended = this.getPointOnRay(bounds.x + bounds.width/2, bounds.y + bounds.height/2, bounds.x, bounds.y + bounds.height * 0.8, distance);
+    this.extended1 = this.getPointOnRay(bounds1.x + bounds1.width/2, bounds1.y + bounds1.height/2, bounds1.x, bounds1.y + bounds1.height * 0.8, distance1);
+
+    //console.log('Старое мест')
+    //console.log(this.extended)
+
+    //console.log('distance: ', distance)
+
+    //// Продолжение линии (пунктиром)
+    border1.moveTo(bounds1.x, bounds1.y + bounds1.height * 0.8);
+    border1.lineTo(this.extended1.x, this.extended1.y);
+    border1.stroke({ width: 2, color: 0xe74c3c, alpha: 0.5 });
+//
+    //// Орбита
+    //const orbit = new Graphics();
+    //orbit.circle(extended.x, extended.y, distance * 1.5);
+    //orbit.stroke({ width: 2, color: 0xffffff, alpha: 0.3 });
+    //this.contentContainer.addChild(orbit);
+    
+
     
     this.contentContainer.addChild(this.gameImage1);
+
+    this.contentContainer.addChild(border1);
+
+    //let angle = -33 * Math.PI / 180;
+    //let rotation = 0;
+    //let direction = -0.007;
+    //let directionPositive = 0.016
+    //let directionNegative = -0.007
+    //const minAngle = -55 * Math.PI / 180
+    //const maxAngle = -25 * Math.PI / 180   
+//
+    //
+    //// Анимация
+    //this.app.ticker.add(() => {
+    //    if (!this.gameImage1 || this.gameImage1.destroyed) return;
+//
+    //        // Ограничение по углу
+    //if (angle >= maxAngle) {
+    //    //angle = maxAngle;
+    //    direction = directionNegative;
+    //    } else if (angle <= minAngle) {
+    //        //angle = minAngle;
+    //        direction = directionPositive;
+    //    }
+//
+    //    angle += direction;
+    //    rotation += direction;
+//
+    //    this.gameImage1.x = extended.x + Math.cos(angle) * distance * 1.5;
+    //    this.gameImage1.y = extended.y + Math.sin(angle) * distance * 1.5;
+    //    this.gameImage1.rotation = rotation// + Math.PI /4; // Поворот по направлению
+    //});
+
+
 
     // Настраиваем второе изображение (соперник)
     this.gameImage2.anchor.set(0.5);
     this.gameImage2.width = imageWidth;
     this.gameImage2.height = imageHeight;
-    this.gameImage2.x = imageWidth / 2 + gap / 2;
+    this.gameImage2.x = imageWidth / 2 //+ gap / 2;
     this.gameImage2.y = fieldY;
+
+    
+    const border2 = new Graphics();
+    const bounds2 = this.gameImage2.getBounds();
+
+    // Верхняя
+    border2.moveTo(bounds2.x, bounds2.y);
+    border2.lineTo(bounds2.x + bounds2.width, bounds2.y);
+    // Правая
+    border2.moveTo(bounds2.x + bounds2.width, bounds2.y);
+    border2.lineTo(bounds2.x + bounds2.width, bounds2.y + bounds2.height);
+    // Нижняя
+    border2.moveTo(bounds2.x + bounds2.width, bounds2.y + bounds2.height);
+    border2.lineTo(bounds2.x, bounds2.y + bounds2.height);
+    // Левая
+    border2.moveTo(bounds2.x, bounds2.y + bounds2.height);
+    border2.lineTo(bounds2.x, bounds2.y);
+
+    border2.moveTo(bounds2.x + bounds2.width/2, bounds2.y + bounds2.height/2);
+    //border2.moveTo(bounds2.x + bounds2.width/2, bounds2.y + bounds2.height/2);
+    //border2.lineTo(bounds2.x, bounds2.y + bounds2.height * 0.8);
+    border2.lineTo(bounds2.x + bounds2.width, bounds2.y + bounds2.height * 0.8);
+    //border2.lineTo(0, 0);
+
+    border2.stroke({ width: 2, color: 0x3498db });
+
+    const distance2 = Math.hypot(bounds2.x - (bounds2.x + bounds2.width/2), (bounds2.y + bounds2.height * 0.8) - (bounds2.y + bounds2.height/2)) * 2;
+
+    this.extended2 = this.getPointOnRay(bounds2.x + bounds2.width/2, bounds2.y + bounds2.height/2, bounds2.x + bounds2.width, bounds2.y + bounds2.height * 0.8, distance2);
+
+        //// Продолжение линии (пунктиром)
+    //border2.moveTo(bounds2.x, bounds2.y + bounds2.height * 0.8);
+    border2.moveTo(bounds2.x + bounds2.width, bounds2.y + bounds2.height * 0.8);
+    border2.lineTo(this.extended2.x, this.extended2.y);
+    border2.stroke({ width: 2, color: 0xe74c3c, alpha: 0.5 });
     
     // ДЕЛАЕМ ПРАВОЕ ИЗОБРАЖЕНИЕ ПОЛУПРОЗРАЧНЫМ
     this.gameImage2.alpha = 0.4;
     
     this.contentContainer.addChild(this.gameImage2);
+
+    this.contentContainer.addChild(border2);
    
     this.startTimer();
 }
+
+
 
 private createScoreDisplay(parentContainer?: Container): void {
     const targetContainer = parentContainer || this.contentContainer;
@@ -1181,8 +1325,32 @@ private onPaper(): void {
     this.opponentTurn();
 }
 
+//private playSound(url: string, volume: number = 1): void {
+//    const audio = new Audio(url);
+//    audio.volume = volume;
+//    audio.play();
+//}
+
+private sounds = {
+    mah: new Audio('/assets/sounds/mah.mp3'),
+    //win: new Audio('win.mp3')
+};
+
 private updatePlayerImage(choice: string): void {
     try {
+            //исходное расположение
+            const fieldY = this.app.screen.height/2;
+            const imageWidth = this.app.screen.height/2;
+            const imageHeight = this.app.screen.height/2;
+
+            // Настраиваем первое изображение (игрок)
+            this.gameImage1.anchor.set(0.5);
+            this.gameImage1.width = imageWidth;
+            this.gameImage1.height = imageHeight;
+            this.gameImage1.x = -imageWidth / 2 //- gap / 2;
+            this.gameImage1.y = fieldY; 
+            this.gameImage1.rotation = 0;
+
         const texture = Assets.cache.get(choice) as Texture;
         if (texture) {
             this.gameImage1.texture = texture;
@@ -1210,6 +1378,15 @@ private removePlayerHighlight(): void {
 
 private updateOpponentImage(choice: string): void {
     try {
+            const fieldY = this.app.screen.height/2;
+            const imageWidth = this.app.screen.height/2;
+            const imageHeight = this.app.screen.height/2;
+        
+            this.gameImage2.anchor.set(0.5);
+            this.gameImage2.width = imageWidth;
+            this.gameImage2.height = imageHeight;
+            this.gameImage2.x = imageWidth / 2 //+ gap / 2;
+            this.gameImage2.y = fieldY;
         const texture = Assets.cache.get(choice) as Texture;
         if (texture) {
             this.gameImage2.texture = texture;
@@ -1223,54 +1400,168 @@ private updateOpponentImage(choice: string): void {
     }
 }
 
-private opponentTurn(): void {
+private shakeAnimation = (): void => {
+        if (!this.gameImage1 || this.gameImage1.destroyed) {
+        this.stopShakeAnimation();
+        return;
+    }
+
+    //console.log('Анимация 1')
+
+    //const bounds = this.gameImage1.getBounds();
+//
+    //const distance = Math.hypot(bounds.x - (bounds.x + bounds.width/2), (bounds.y + bounds.height * 0.8) - (bounds.y + bounds.height/2)) * 2;
+//
+    //// Точка на продолжении
+    //const extended = this.getPointOnRay(bounds.x + bounds.width/2, bounds.y + bounds.height/2, bounds.x, bounds.y + bounds.height * 0.8, distance);
+
+    //let angle = -33 * Math.PI / 180;
+    //let rotation = 0;
+    //let direction = -0.007;
+    let directionPositive = 0.02
+    //let directionPositive = 0.001
+    let directionNegative = -0.007
+    const minAngle = -55 * Math.PI / 180
+    const maxAngle = -25 * Math.PI / 180  
+
+                // Ограничение по углу
+    if (this.angle1 >= maxAngle) {
+
+        console.log('звук')
+        if(this.direction >= 0)
+        {
+          this.sounds.mah.play();
+          console.log(this.direction)
+        }
+        this.direction = directionNegative;
+
+        
+
+    } else if (this.angle1 <= minAngle) {
+
+        this.direction = directionPositive;
+    }
+
+        //console.log('Анимация 2')
+        //console.log(this.angle)
+
+        this.angle1 += this.direction;
+        this.rotation1 += this.direction;
+
+        this.angle2 += -this.direction;
+        this.rotation2 += -this.direction;
+
+        this.sumAngle += Math.abs(this.direction);
+        //console.log(this.maxAngle)
+
+        this.gameImage1.x = this.extended1.x + Math.cos(this.angle1) * this.distance1 * 1.5;
+        this.gameImage1.y = this.extended1.y + Math.sin(this.angle1) * this.distance1 * 1.5;
+        this.gameImage1.rotation = this.rotation1// + Math.PI /4; // Поворот по направлению
+
+        this.gameImage2.x = this.extended2.x + Math.cos(this.angle2) * this.distance2 * 1.5;
+        this.gameImage2.y = this.extended2.y + Math.sin(this.angle2) * this.distance2 * 1.5;
+        this.gameImage2.rotation = this.rotation2// + Math.PI /4; // Поворот по направлению
+
+            // Останавливаем после N полных циклов
+    if (this.sumAngle >= 2.91) {
+        this.stopShakeAnimation();
+        this.onSwingComplete?.();
+    }
+}
+
+//private shakeCount: number = 0;
+//private maxSwings: number = 3;
+private onSwingComplete: (() => void) | null = null;
+
+private distance1: number = 0;
+private distance2: number = 0;
+private extended1 = {x: 0, y: 0} 
+private extended2 = {x: 0, y: 0} 
+private angle1: number = -33 * Math.PI / 180;
+private angle2: number = -147 * Math.PI / 180;
+private sumAngle: number = 0;
+private rotation1: number = 0;
+private rotation2: number = 0;
+private direction: number = 0;
+
+// Очистка
+private stopShakeAnimation(): void {
+    this.app.ticker.remove(this.shakeAnimation);
+}
+
+// Запуск с await
+async playShakeAnimation(): Promise<void> {
+    return new Promise((resolve) => {
+        //this.shakeCount = 0;
+        this.sumAngle = 0;
+        //this.maxSwings = cycles;
+        const bounds1 = this.gameImage1.getBounds();
+        const bounds2 = this.gameImage2.getBounds();
+
+        this.distance1 = Math.hypot(bounds1.x - (bounds1.x + bounds1.width/2), (bounds1.y + bounds1.height * 0.8) - (bounds1.y + bounds1.height/2)) * 2;
+        this.distance2 = Math.hypot(bounds2.x - (bounds2.x + bounds2.width/2), (bounds2.y + bounds2.height * 0.8) - (bounds2.y + bounds2.height/2)) * 2;
+
+        // Точка на продолжении
+        //this.extended = this.getPointOnRay(bounds.x + bounds.width/2, bounds.y + bounds.height/2, bounds.x, bounds.y + bounds.height * 0.8, this.distance);
+        console.log('Новое мест')
+        //console.log(this.extended)
+        this.direction = -0.007;
+        //this.angle = 0;
+        this.onSwingComplete = resolve;
+        this.app.ticker.add(this.shakeAnimation);
+    });
+}
+
+// Измените метод на async
+private async opponentTurn(): Promise<void> {
     // Убираем подсветку игрока
     this.removePlayerHighlight();
     
     // Убираем индикатор ожидания соперника
     this.hideOpponentWaiting();
     
-    // Задержка перед ходом соперника (имитация размышления)
-    setTimeout(() => {
-        // Генерируем случайный выбор соперника
-        this.opponentChoice = this.getRandomChoice();
-        console.log(`🤖 Соперник выбрал: ${this.getChoiceName(this.opponentChoice)}`);
-        
-        // Обновляем картинку соперника
-        this.updateOpponentImage(this.opponentChoice);
-        this.updatePlayerImage(this.playerChoice??''); 
-        
-        // Показываем выбор соперника
-        this.showOpponentChoice(this.opponentChoice);
-        
-        // Определяем победителя
-        const result = this.determineWinner(this.playerChoice!, this.opponentChoice);
-        
-        // Обновляем счёт для проверки
-        let newPlayerScore = this.playerScore;
-        let newOpponentScore = this.opponentScore;
-        
-        if (result === 'win') {
-            newPlayerScore++;
-        } else if (result === 'lose') {
-            newOpponentScore++;
-        }
-        
-        // Проверяем, будет ли это решающий раунд
-        const isMatchPoint = (newPlayerScore >= this.WIN_SCORE || newOpponentScore >= this.WIN_SCORE);
-        
-        // Показываем результат
-        setTimeout(() => {
-            if (isMatchPoint) {
-                // Решающий раунд - сразу обрабатываем и переходим
-                this.processRoundResult(result);
-            } else {
-                // Обычный раунд - показываем popup
-                this.showRoundResultPopup(result);
-            }
-        }, 1000);
-        
-    }, 1500);
+    // Задержка перед ходом соперника
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Генерируем случайный выбор соперника
+    this.opponentChoice = this.getRandomChoice();
+    console.log(`🤖 Соперник выбрал: ${this.getChoiceName(this.opponentChoice)}`);
+
+    console.log('До анимации')
+    // ✅ Ждём завершения анимации
+    await this.playShakeAnimation();
+    console.log('После анимации')
+    
+    // Теперь этот код выполнится ПОСЛЕ анимации
+    this.updateOpponentImage(this.opponentChoice);
+    this.updatePlayerImage(this.playerChoice ?? '');
+    
+    // Показываем выбор соперника
+    this.showOpponentChoice(this.opponentChoice);
+    
+    // Определяем победителя
+    const result = this.determineWinner(this.playerChoice!, this.opponentChoice);
+    
+    // Обновляем счёт
+    let newPlayerScore = this.playerScore;
+    let newOpponentScore = this.opponentScore;
+    
+    if (result === 'win') {
+        newPlayerScore++;
+    } else if (result === 'lose') {
+        newOpponentScore++;
+    }
+    
+    const isMatchPoint = (newPlayerScore >= this.WIN_SCORE || newOpponentScore >= this.WIN_SCORE);
+    
+    // Небольшая пауза перед результатом
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    if (isMatchPoint) {
+        this.processRoundResult(result);
+    } else {
+        this.showRoundResultPopup(result);
+    }
 }
 
 // Метод генерации случайного выбора соперника
@@ -1446,6 +1737,46 @@ private showActionEffect(text: string, color: number): void {
     }
   }
 
+  private createSimpleOrbit(): void {
+    const centerX = this.centerX();
+    const centerY = this.centerY();
+    let angle = 0;
+    
+    // Центр
+    const centerEmoji = new Text({
+        text: '🎯',
+        style: { fontSize: 40 }
+    });
+    centerEmoji.anchor.set(0.5);
+    centerEmoji.x = centerX;
+    centerEmoji.y = centerY;
+    this.container.addChild(centerEmoji);
+    
+    // Орбита
+    const orbit = new Graphics();
+    orbit.circle(centerX, centerY, 100);
+    orbit.stroke({ width: 2, color: 0xffffff, alpha: 0.3 });
+    this.container.addChild(orbit);
+    
+    // Вращающийся эмодзи
+    const rocket = new Text({
+        text: '🚀',
+        style: { fontSize: 30 }
+    });
+    rocket.anchor.set(0.5);
+    this.container.addChild(rocket);
+    
+    // Анимация
+    this.app.ticker.add(() => {
+        if (!rocket || rocket.destroyed) return; //фикс перехода на другую сцену
+
+        angle += 0.02;
+        rocket.x = centerX + Math.cos(angle) * 100;
+        rocket.y = centerY + Math.sin(angle) * 100;
+        rocket.rotation = angle + Math.PI / 2; // Поворот по направлению
+    });
+}
+
 private finishMatch(): void {
     console.log('⏰ Матч завершен!');
     
@@ -1491,7 +1822,7 @@ destroy(options?: any): void {
     if (this.searchInterval) {
         clearInterval(this.searchInterval);
     }
-    
+   
     super.destroy(options);
 }
 }
