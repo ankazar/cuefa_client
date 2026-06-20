@@ -1427,18 +1427,16 @@ private shakeAnimation = (): void => {
                 // Ограничение по углу
     if (this.angle1 >= maxAngle) {
 
-        console.log('звук')
-        if(this.direction >= 0)
-        {
-          this.sounds.mah.play();
-          console.log(this.direction)
-        }
-        this.direction = directionNegative;
-
-        
+        this.direction = directionNegative;        
 
     } else if (this.angle1 <= minAngle) {
 
+        //console.log('звук')
+        if(this.direction <= 0)
+        {
+          this.sounds.mah.play();
+          //console.log(this.direction)
+        }
         this.direction = directionPositive;
     }
 
