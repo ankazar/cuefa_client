@@ -88,7 +88,7 @@ async init(tournamentData?: any): Promise<void> {
     // Ждём соперника (не блокируя интерфейс)
     this.waitForOpponent();
 
-    this.createSimpleOrbit();
+    //this.createSimpleOrbit();
 }
 
   private createBackground(): void {
