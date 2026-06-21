@@ -1,5 +1,5 @@
 import { BaseScene } from './BaseScene';
-import { Graphics, Text, Container } from 'pixi.js';
+import { Graphics, Text, Container, Assets, Sprite, Texture } from 'pixi.js';
 import { Button } from '../components/Button';
 
 export class ResultsScene extends BaseScene {
@@ -17,19 +17,35 @@ export class ResultsScene extends BaseScene {
     this.createNavigationButtons();
   }
 
-
   private createBackground(): void {
     this.background = new Graphics();
     this.background.rect(0, 0, this.app.screen.width, this.app.screen.height);
-    
-    if (this.matchData.result.winner) {
-      this.background.fill(0x1b5e20); // Зеленый для победы
-    } else {
-      this.background.fill(0xb71c1c); // Красный для поражения
-    }
-    
+    this.background.fill(0x004bbc);
     this.container.addChild(this.background);
+
+    const texture = Assets.cache.get('rays') as Texture;
+
+    const imageBg = new Sprite(texture);
+    imageBg.width = this.app.screen.width*2;
+    imageBg.height = this.app.screen.height*2;
+    imageBg.x = this.centerX()
+    imageBg.y = this.centerY() 
+    imageBg.anchor.set(0.5)
+    //imageBg.alpha = 0.3; // 30% прозрачности
+    this.container.addChild(imageBg);
   }
+  //private createBackground(): void {
+  //  this.background = new Graphics();
+  //  this.background.rect(0, 0, this.app.screen.width, this.app.screen.height);
+  //  
+  //  if (this.matchData.result.winner) {
+  //    this.background.fill(0x1b5e20); // Зеленый для победы
+  //  } else {
+  //    this.background.fill(0xb71c1c); // Красный для поражения
+  //  }
+  //  
+  //  this.container.addChild(this.background);
+  //}
 
   private createTitle(): void {
     const isWinner = this.matchData.result.winner;
@@ -38,7 +54,8 @@ export class ResultsScene extends BaseScene {
       text: isWinner ? 'ПОБЕДА! 🎉' : 'ПОРАЖЕНИЕ',
       style: {
         fill: 0xffffff,
-        fontSize: 48,
+        fontSize:Math.round(this.app.screen.height * 0.1),
+        //fontSize: 48,
         fontFamily: 'Arial',
         fontWeight: 'bold',
         stroke: isWinner ? 0x4caf50 : 0xf44336,
@@ -48,17 +65,19 @@ export class ResultsScene extends BaseScene {
     
     this.title.anchor.set(0.5);
     this.title.x = this.centerX();
-    this.title.y = 100;
+    //this.title.y = 100;
+    this.title.y = this.app.screen.height * 0.15;
     this.container.addChild(this.title);
   }
 
   private createContent(): void {
     this.contentContainer = new Container();
     this.contentContainer.x = this.centerX();
-    this.contentContainer.y = 200;
+    //this.contentContainer.y = 200;
+    this.contentContainer.y = this.app.screen.height * 0.25;
     this.container.addChild(this.contentContainer);
 
-    this.createTournamentInfo();
+    //this.createTournamentInfo();
     this.createScoreBoard();
     this.createPrizeInfo();
   }
@@ -93,7 +112,7 @@ export class ResultsScene extends BaseScene {
 
     // Заголовок
     const scoreTitle = new Text({
-      text: 'РЕЗУЛЬТАТ МАТЧА',
+      text: this.matchData.tournament.name,
       style: {
         fill: 0x333333,
         fontSize: 18,
@@ -133,7 +152,18 @@ export class ResultsScene extends BaseScene {
     this.contentContainer.addChild(scoreTitle);
     }
     else{
-
+      const loseText = new Text({
+        text: '😔 Вы выбыли из турнира',
+        style: {
+          fill: 0x333333,
+          fontSize: 20,
+          fontFamily: 'Arial'
+        }
+      });
+      loseText.anchor.set(0.5);
+      loseText.x = 0;
+      loseText.y = scoreY + 40;
+      this.contentContainer.addChild(loseText);
     }
   }
 
@@ -168,18 +198,18 @@ export class ResultsScene extends BaseScene {
     } 
     else 
     {
-      const loseText = new Text({
-        text: '😔 Вы выбыли из турнира',
-        style: {
-          fill: 0xffffff,
-          fontSize: 20,
-          fontFamily: 'Arial'
-        }
-      });
-      loseText.anchor.set(0.5);
-      loseText.x = 0;
-      loseText.y = prizeY;
-      this.contentContainer.addChild(loseText);
+      //const loseText = new Text({
+      //  text: '😔 Вы выбыли из турнира',
+      //  style: {
+      //    fill: 0xffffff,
+      //    fontSize: 20,
+      //    fontFamily: 'Arial'
+      //  }
+      //});
+      //loseText.anchor.set(0.5);
+      //loseText.x = 0;
+      //loseText.y = prizeY;
+      //this.contentContainer.addChild(loseText);
     }
   }
 
@@ -211,13 +241,15 @@ export class ResultsScene extends BaseScene {
   }
 
   private createNavigationButtons(): void {
-    const buttonsY = 350;
+    const buttonsY = this.app.screen.height * 0.65;
 
     const isWin = this.matchData.result.winner
 
 
     if (!isWin){
       // Кнопка "В турниры"
+      //Если турнир не доступен, тогда к турнирам
+      //Если доступен то на страницу турнира или прямо в игровую комнату
       const tournamentsButton = new Button('К ТУРНИРАМ', 180, 50);
       tournamentsButton.y = buttonsY;
       tournamentsButton.onPress = () => {
