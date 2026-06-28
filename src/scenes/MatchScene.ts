@@ -1436,7 +1436,10 @@ private shakeAnimation = (): void => {
         //console.log('звук')
         if(this.direction <= 0)
         {
-          this.sounds.mah.play();
+          //this.sounds.mah.play();
+          setTimeout(() => {
+                this.sounds.mah.play();
+            }, 200)
           //console.log(this.direction)
         }
         this.direction = directionPositive;
