@@ -60,7 +60,22 @@ export class MenuScene extends BaseScene {
     this.tournamentsButton.onPress = () => {
       console.log('🎯 Переход к турнирам');
       // Здесь будет переход на TournamentsScene
-      this.emit('change-scene', 'TournamentsScene');
+      //this.emit('change-scene', 'TournamentsScene');
+      const tournament =       { 
+        id: 1,
+        name: 'Ежедневный турнир', 
+        players: '128/256', 
+        prize: '1,000 ₽',
+        entry: 'Бесплатно',
+        status: 'available',
+        time: '15:00',
+        duration: '2 часа',
+        rules: 'Лучший из 3 раундов',
+        prizeDistribution: ['1 место: 500 ₽', '2 место: 300 ₽', '3 место: 200 ₽'],
+        lastTour: 2,
+        curTour: 1
+      }
+      this.emit('change-scene', 'TournamentInfoScene', tournament)
     };
     this.container.addChild(this.tournamentsButton);
 

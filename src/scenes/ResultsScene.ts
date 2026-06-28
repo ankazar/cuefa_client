@@ -253,7 +253,22 @@ export class ResultsScene extends BaseScene {
       const tournamentsButton = new Button('К ТУРНИРАМ', 180, 50);
       tournamentsButton.y = buttonsY;
       tournamentsButton.onPress = () => {
-      this.emit('change-scene', 'TournamentsScene');
+      //this.emit('change-scene', 'TournamentsScene');
+        const tournament =       { 
+        id: 1,
+        name: 'Ежедневный турнир', 
+        players: '128/256', 
+        prize: '1,000 ₽',
+        entry: 'Бесплатно',
+        status: 'available',
+        time: '15:00',
+        duration: '2 часа',
+        rules: 'Лучший из 3 раундов',
+        prizeDistribution: ['1 место: 500 ₽', '2 место: 300 ₽', '3 место: 200 ₽'],
+        lastTour: 2,
+        curTour: 1
+      }
+      this.emit('change-scene', 'TournamentInfoScene', tournament)
     };
     this.contentContainer.addChild(tournamentsButton);
     }
@@ -268,7 +283,22 @@ const curTour = this.matchData.tournament.curTour;
       nextMatchButton.y = buttonsY;
       nextMatchButton.onPress = () => {
       // Можно вернуться к поиску матча или в меню
-      this.emit('change-scene', 'TournamentsScene', this.matchData.tournament); //TODO переименовать в tournamentData
+      //this.emit('change-scene', 'TournamentsScene', this.matchData.tournament); //TODO переименовать в tournamentData
+      const tournament =       { 
+        id: 1,
+        name: 'Ежедневный турнир', 
+        players: '128/256', 
+        prize: '1,000 ₽',
+        entry: 'Бесплатно',
+        status: 'available',
+        time: '15:00',
+        duration: '2 часа',
+        rules: 'Лучший из 3 раундов',
+        prizeDistribution: ['1 место: 500 ₽', '2 место: 300 ₽', '3 место: 200 ₽'],
+        lastTour: 2,
+        curTour: 1
+      }
+      this.emit('change-scene', 'TournamentInfoScene', tournament)
     };
     this.contentContainer.addChild(nextMatchButton);
     }
