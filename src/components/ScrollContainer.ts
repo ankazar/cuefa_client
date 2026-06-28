@@ -29,6 +29,11 @@ export class ScrollContainer extends Container {
         this.maskGraphic = new Graphics();
         this.maskGraphic.visible = false;
         this.addChild(this.maskGraphic);
+
+        const background = new Graphics();
+        background.rect(-width / 2, 0, width, height);
+        background.fill(0x000000, 0.5); // 50% непрозрачности чёрного
+        this.addChild(background);
         
         // Область для перетаскивания
         this.dragArea = new Graphics();
