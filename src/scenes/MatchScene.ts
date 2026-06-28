@@ -55,6 +55,11 @@ private userscore!: Text;
 private opponentScoreText!: Text;
 private roundText!: Text;
 
+private sounds = {
+    mah: new Audio('/assets/sounds/mah.mp3'),
+    //win: new Audio('win.mp3')
+};
+
 async init(tournamentData?: any): Promise<void> {
     console.log('🎮 MatchScene init вызван с данными:', tournamentData);
     this.tournamentData = tournamentData;
@@ -1331,10 +1336,7 @@ private onPaper(): void {
 //    audio.play();
 //}
 
-private sounds = {
-    mah: new Audio('/assets/sounds/mah.mp3'),
-    //win: new Audio('win.mp3')
-};
+
 
 private updatePlayerImage(choice: string): void {
     try {
@@ -1418,7 +1420,7 @@ private shakeAnimation = (): void => {
     //let angle = -33 * Math.PI / 180;
     //let rotation = 0;
     //let direction = -0.007;
-    let directionPositive = 0.02
+    let directionPositive = 0.025
     //let directionPositive = 0.001
     let directionNegative = -0.007
     const minAngle = -55 * Math.PI / 180
