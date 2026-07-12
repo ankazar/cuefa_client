@@ -64,7 +64,8 @@ export class TournamentInfoScene extends BaseScene {
   private createBackButton(): void {
     this.backButton = new Button('Назад', 120, 40);
     this.backButton.x = 80;
-    this.backButton.y = 50;
+    //this.backButton.y = 50;
+    this.backButton.y = this.app.screen.height * 0.85; //todo в переменную
     this.backButton.onPress = () => {
       console.log('🔙 Возврат к списку турниров');
       this.emit('change-scene', 'TournamentsScene');
@@ -104,6 +105,8 @@ export class TournamentInfoScene extends BaseScene {
     imageCup.height = imageCupHeight;
     const scale = imageCupHeight / imageCup.texture.height;
 
+    imageCup.x = this.app.screen.width * 0.80 * 0.05
+
     imageCup.scale.set(scale); // пропорционально уменьшит и ширину, и высоту
 
     this.contentContainer.addChild(imageCup);
@@ -120,9 +123,57 @@ export class TournamentInfoScene extends BaseScene {
       }
     });
     title.anchor.set(0.5);
-    title.x = this.app.screen.width * 0.80 * 0.5;
+    title.x = this.app.screen.width * 0.80 * 0.6;
     title.y = imageCupHeight * 0.15;
     this.contentContainer.addChild(title);
+
+    const title2 = new Text({
+      text: 'Первый открытый турнир CUEFACUP',
+      style: {
+        fill: 0xecf0f1,
+        fontSize: 24,
+        fontFamily: 'Arial',
+        fontWeight: 'bold',
+        stroke: 0x2c3e50,
+        strokeThickness: 2
+      }
+    });
+    title2.anchor.set(0.5);
+    title2.x = this.app.screen.width * 0.80 * 0.6;
+    title2.y = imageCupHeight * 0.35;
+    this.contentContainer.addChild(title2);
+
+    const title3 = new Text({
+      text: '🏆 10 туров до победы',
+      style: {
+        fill: 0xecf0f1,
+        fontSize: 24,
+        fontFamily: 'Arial',
+        fontWeight: 'bold',
+        stroke: 0x2c3e50,
+        strokeThickness: 2
+      }
+    });
+    title3.anchor.set(0.5);
+    title3.x = this.app.screen.width * 0.80 * 0.6;
+    title3.y = imageCupHeight * 0.5;
+    this.contentContainer.addChild(title3);
+
+    const title4 = new Text({
+      text: '⚔️ Игра на вылет до 2х побед',
+      style: {
+        fill: 0xecf0f1,
+        fontSize: 24,
+        fontFamily: 'Arial',
+        fontWeight: 'bold',
+        stroke: 0x2c3e50,
+        strokeThickness: 2
+      }
+    });
+    title4.anchor.set(0.5);
+    title4.x = this.app.screen.width * 0.80 * 0.6;
+    title4.y = imageCupHeight * 0.65;
+    this.contentContainer.addChild(title4);
   }
 
   private createTournamentCard(): void {
