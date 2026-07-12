@@ -283,7 +283,8 @@ private updateOpponentCard(data: { name: string; avatarUrl?: string; avatarBase6
         console.log('📝 updateOpponentCard Меняем цвет обводки на зелёный');
         
         // Обновляем текстуру
-        if (data.avatarBase64) {
+        //работают url
+        if (!data.avatarBase64) {
             // Из Base64
             console.log('📥 data.avatarBase64 вызван с:', data.avatarBase64.substring(0, 50));
             avatar.loadFromBase64(data.avatarBase64);

@@ -68,7 +68,8 @@ export class TournamentInfoScene extends BaseScene {
     this.backButton.y = this.app.screen.height * 0.85; //todo в переменную
     this.backButton.onPress = () => {
       console.log('🔙 Возврат к списку турниров');
-      this.emit('change-scene', 'TournamentsScene');
+      //this.emit('change-scene', 'TournamentsScene');
+      this.emit('change-scene', 'MenuScene');
     };
     this.container.addChild(this.backButton);
   }
