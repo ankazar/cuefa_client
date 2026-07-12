@@ -33,7 +33,8 @@ export class BootScene extends BaseScene {
                 { alias: 'search_opponent', src: 'assets/images/search_opponent.png'},
                 { alias: 'rock_btn', src: 'assets/images/rock_btn.png' },
                 { alias: 'scissors_btn', src: 'assets/images/scissors_btn.png' },
-                { alias: 'paper_btn', src: 'assets/images/paper_btn.png' }
+                { alias: 'paper_btn', src: 'assets/images/paper_btn.png' },
+                { alias: 'cup', src: 'assets/images/cup.png' }
 
                 // другие ресурсы...
             ]);

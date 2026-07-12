@@ -81,11 +81,48 @@ export class TournamentInfoScene extends BaseScene {
 
     this.contentContainer = this.scrollContainer.getContent();
 
-    this.createTournamentCard();
-    this.createDetailsSection();
-    this.createPrizeDistribution();
+    this.createTournamentCardTemp();
+    //this.createTournamentCard();
+    //this.createDetailsSection();
+    //this.createPrizeDistribution();
 
     this.scrollContainer.updateScrollbar();
+  }
+
+  private createTournamentCardTemp(): void {
+    const textureCup = Assets.cache.get('cup') as Texture;
+
+    const imageCup = new Sprite(textureCup);
+
+    //const imageCupWidth = this.app.screen.width/2;
+    //const imageCupWidth = this.app.screen.width * 0.80
+    //const imageCupHeight = this.app.screen.height/2;
+    const imageCupHeight = this.app.screen.height * 0.50
+
+    //imageCup.anchor.set(0.5);
+    //imageCup.width = imageCupWidth;
+    imageCup.height = imageCupHeight;
+    const scale = imageCupHeight / imageCup.texture.height;
+
+    imageCup.scale.set(scale); // пропорционально уменьшит и ширину, и высоту
+
+    this.contentContainer.addChild(imageCup);
+
+    const title = new Text({
+      text: 'CUEFACUP1',
+      style: {
+        fill: 0xecf0f1,
+        fontSize: 36,
+        fontFamily: 'Arial',
+        fontWeight: 'bold',
+        stroke: 0x2c3e50,
+        strokeThickness: 2
+      }
+    });
+    title.anchor.set(0.5);
+    title.x = this.app.screen.width * 0.80 * 0.5;
+    title.y = imageCupHeight * 0.15;
+    this.contentContainer.addChild(title);
   }
 
   private createTournamentCard(): void {
