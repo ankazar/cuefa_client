@@ -1390,6 +1390,7 @@ private updateOpponentImage(choice: string): void {
             this.gameImage2.height = imageHeight;
             this.gameImage2.x = imageWidth / 2 //+ gap / 2;
             this.gameImage2.y = fieldY;
+            this.gameImage2.rotation = 0;
         const texture = Assets.cache.get(choice) as Texture;
         if (texture) {
             this.gameImage2.texture = texture;
