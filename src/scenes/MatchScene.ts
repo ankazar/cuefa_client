@@ -1447,7 +1447,7 @@ export class MatchScene extends BaseScene {
       this.gameImage2.anchor.set(0.5);
       this.gameImage2.width = imageWidth;
       this.gameImage2.height = imageHeight;
-      this.gameImage2.x = imageWidth / 2; //+ gap / 2;
+      this.gameImage2.x = imageWidth / 2;
       this.gameImage2.y = fieldY;
       this.gameImage2.rotation = 0;
       const texture = Assets.cache.get(choice) as Texture;
