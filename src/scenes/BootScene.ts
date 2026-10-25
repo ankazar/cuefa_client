@@ -2,15 +2,47 @@ import { BaseScene } from "./BaseScene";
 import { Graphics, Text, Assets, Sprite } from "pixi.js";
 import { UserService } from "../core/UserService";
 import { RequestsAPI } from "../core/RequestsAPI";
+import bridge from '@vkontakte/vk-bridge';
 
 export class BootScene extends BaseScene {
   async init(): Promise<void> {
+
+    bridge.send('VKWebAppInit')
+    .then((data) => {
+      if (data.result) {
+        console.log('✅ VKWebAppInit сработал корректно');
+        // Здесь можно безопасно вызывать другие методы, например VKWebAppGetUserInfo
+      } else {
+        console.warn('⚠️ VKWebAppInit вернул result: false');
+      }
+    })
+    .catch((error) => {
+      console.error('❌ Ошибка инициализации VK Bridge:', error);
+    });
+
+    if (bridge.isWebView()) {
+      console.log('✅ Запущено внутри клиента VK');
+      bridge.send('VKWebAppGetUserInfo')
+      .then((user) => {
+      console.log('Имя:', user.first_name);
+      console.log('Фамилия:', user.last_name);
+      UserService.setUserData({ userName: `${user.first_name} ${user.last_name}`});
+    })
+      // Можно безопасно вызывать VKWebAppGetUserInfo и другие методы
+    } else {
+      console.log('🌐 Запущено в обычном браузере');
+      UserService.setUserData({ userName: "Андрей Молотов+" });
+      // Среда VK недоступна, нужна логика fallback
+    }
+
+    // Subscribes to event, sended by client
+    //bridge.subscribe((e) => console.log(e));
+
     const userId = 1; //TODO получить от апи
 
     // Сохраняем в сервис
     UserService.setUserId(userId);
-
-    UserService.setUserData({ userName: "Андрей Молотов" });
+    
 
     // Симулируем загрузку или загружаем критические ресурсы
     await this.loadCriticalAssets();

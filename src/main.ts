@@ -7,6 +7,7 @@ import { FindOpponentScene } from "./scenes/FindOpponentScene";
 import { MatchScene } from "./scenes/MatchScene";
 import { ResultsScene } from "./scenes/ResultsScene";
 import "./styles/styles.css";
+import bridge from '@vkontakte/vk-bridge';
 
 class Game {
   private app: Application;
@@ -27,6 +28,7 @@ class Game {
         backgroundColor: 0x004bbc,
         resizeTo: window,
       });
+
 
       // Добавляем canvas
       const pixiContainer = document.getElementById("pixi-container");

@@ -11,6 +11,7 @@
     "dev": "vite"
   },
   "dependencies": {
+    "@vkontakte/vk-bridge": "^3.0.2",
     "eventemitter3": "^5.0.1",
     "pixi.js": "^8.8.1"
   },
