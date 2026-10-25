@@ -12,3 +12,7 @@ npm run build
 
 чат 
 https://chat.deepseek.com/a/chat/s/c407efd4-a893-4886-beaa-c4a4d62f10f4
+
+Невозможно загрузить файл C:\Program Files\nodejs\npm.ps1
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
