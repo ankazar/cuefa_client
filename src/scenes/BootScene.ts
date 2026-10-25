@@ -42,7 +42,10 @@ export class BootScene extends BaseScene {
         // другие ресурсы...
       ]);
 
-      this.initVK();
+      await this.initVK();
+
+      const commitHash = import.meta.env.VITE_COMMIT_HASH || 'unknown';
+      console.log('Build commit hash:', commitHash);
 
       // Переходим на следующую сцену
       this.emit("change-scene", "MenuScene");
@@ -104,40 +107,46 @@ export class BootScene extends BaseScene {
     this.container.addChild(errorText);
   }
 
-  private async initVK() {
+  private async initVK(): Promise<void> {
+    console.log('start initVK()');
   try {
-    const data = await bridge.send('VKWebAppInit');
-    if (data.result) {
-      console.log('✅ VKWebAppInit сработал корректно');
-    } else {
-      console.warn('⚠️ VKWebAppInit вернул result: false');
-    }
-  } catch (error) {
-    console.error('❌ Ошибка инициализации VK Bridge:', error);
+    // В обычном браузере не ждём VKWebAppInit, чтобы избежать зависания
+  const initPromise = bridge.send('VKWebAppInit').catch(() => null);
+
+  // Даём максимум 2 секунды, если таймаут — считаем, что среда не VK
+  const result = await Promise.race([
+    initPromise,
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000)),
+  ]);
+
+    if (!result) {
+    console.log('🌐 Не VK-среда или таймаут инициализации, используется fallback');
+    UserService.setUserData({ userName: 'Гость' });
     return;
   }
 
-  // Теперь проверяем среду ПОСЛЕ инициализации
-  if (bridge.isWebView()) {
-    console.log('✅ Запущено внутри клиента VK');
-    try {
-      const user = await bridge.send('VKWebAppGetUserInfo');
-      console.log('Имя:', user.first_name);
-      console.log('Фамилия:', user.last_name);
-      UserService.setUserData({
-        userName: `${user.first_name} ${user.last_name}`
-      });
-    } catch (e) {
-      console.error('❌ Не удалось получить данные пользователя:', e);
-      UserService.setUserData({ userName: 'Гость' });
-    }
-  } else {
-    console.log('🌐 Запущено в обычном браузере');
-    UserService.setUserData({ userName: 'Андрей Молотов+' });
+    const data = await bridge.send('VKWebAppInit');
+    if (!data.result) console.warn('⚠️ VKWebAppInit: result=false');
+  } catch (e) {
+    console.error('❌ VKWebAppInit failed:', e);
   }
 
-  const commitHash = import.meta.env.VITE_COMMIT_HASH || 'unknown';
-  console.log('Build commit hash:', commitHash);
+  let userName = 'Гость';
+
+  if (bridge.isWebView()) {
+    try {
+      const user = await bridge.send('VKWebAppGetUserInfo');
+      userName =
+        [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Гость';
+    } catch (e) {
+      console.error('❌ VKWebAppGetUserInfo failed:', e);
+    }
+  } else {
+    console.log('🌐 Обычный браузер — fallback-пользователь');
+    userName = 'Андрей Молотов+'; // или 'Гость' для продакшена
+  }
+
+  UserService.setUserData({ userName });
 
     // Subscribes to event, sended by client
     //bridge.subscribe((e) => console.log(e));
