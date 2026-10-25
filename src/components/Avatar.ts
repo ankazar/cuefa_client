@@ -7,6 +7,7 @@ export class Avatar extends Container {
   private avatarMask: Graphics; // ← переименовано с mask
   private avatarBorder?: Graphics; // ← переименовано с border
   private currentSize: number;
+  private borderColor?: number;
 
   constructor(
     textureAlias: string = "avatar_default",
@@ -42,6 +43,7 @@ export class Avatar extends Container {
 
     // Обводка
     if (borderColor !== undefined) {
+      this.borderColor = borderColor;
       this.avatarBorder = new Graphics();
       this.avatarBorder.circle(0, 0, size / 2);
       this.avatarBorder.stroke({ width: 2, color: borderColor });
@@ -85,6 +87,7 @@ export class Avatar extends Container {
 
   // Обновить цвет обводки
   setBorderColor(color: number): void {
+    this.borderColor = color;
     if (this.avatarBorder) {
       this.avatarBorder.clear();
       this.avatarBorder.circle(0, 0, this.currentSize / 2);
@@ -103,6 +106,7 @@ export class Avatar extends Container {
       this.removeChild(this.avatarBorder);
       this.avatarBorder.destroy();
       this.avatarBorder = undefined;
+      this.borderColor = undefined;
     }
   }
 
@@ -119,7 +123,7 @@ export class Avatar extends Container {
 
     // Обновляем обводку если есть
     if (this.avatarBorder) {
-      const color = (this.avatarBorder as any).strokeColor || 0xffffff;
+      const color = this.borderColor;
       this.avatarBorder.clear();
       this.avatarBorder.circle(0, 0, size / 2);
       this.avatarBorder.stroke({ width: 2, color: color });
