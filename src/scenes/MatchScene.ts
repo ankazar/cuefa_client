@@ -59,7 +59,7 @@ export class MatchScene extends BaseScene {
   private roundText!: Text;
 
   private sounds = {
-    mah: new Audio("/assets/sounds/mah.mp3"),
+    mah: new Audio(`${import.meta.env.BASE_URL}assets/sounds/mah.mp3`),
     //win: new Audio('win.mp3')
   };
 
