@@ -1,6 +1,6 @@
-import { BaseScene } from './BaseScene';
-import { Graphics, Text, Texture, Assets, Sprite} from 'pixi.js';
-import { Button } from '../components/Button';
+import { BaseScene } from "./BaseScene";
+import { Graphics, Text, Texture, Assets, Sprite } from "pixi.js";
+import { Button } from "../components/Button";
 
 export class MenuScene extends BaseScene {
   private background!: Graphics;
@@ -14,7 +14,7 @@ export class MenuScene extends BaseScene {
   }
 
   private createBackground(): void {
-    const texture = Assets.cache.get('rays') as Texture;
+    const texture = Assets.cache.get("rays") as Texture;
 
     this.background = new Graphics();
     this.background.rect(0, 0, this.app.screen.width, this.app.screen.height);
@@ -22,28 +22,28 @@ export class MenuScene extends BaseScene {
     this.container.addChild(this.background);
 
     const imageBg = new Sprite(texture);
-    imageBg.width = this.app.screen.width*2;
-    imageBg.height = this.app.screen.height*2;
-    imageBg.x = this.centerX()
-    imageBg.y = this.centerY() 
-    imageBg.anchor.set(0.5)
+    imageBg.width = this.app.screen.width * 2;
+    imageBg.height = this.app.screen.height * 2;
+    imageBg.x = this.centerX();
+    imageBg.y = this.centerY();
+    imageBg.anchor.set(0.5);
     //imageBg.alpha = 0.3; // 30% прозрачности
     this.container.addChild(imageBg);
   }
 
   private createTitle(): void {
     this.title = new Text({
-      text: 'CUEFA CUP',
+      text: "CUEFA CUP",
       style: {
         fill: 0xecf0f1,
         fontSize: 64,
-        fontFamily: 'Arial',
-        fontWeight: 'bold',
+        fontFamily: "Arial",
+        fontWeight: "bold",
         stroke: 0x34495e,
-        strokeThickness: 4
-      }
+        strokeThickness: 4,
+      },
     });
-    
+
     this.title.anchor.set(0.5);
     this.title.x = this.centerX();
     this.title.y = 150;
@@ -52,30 +52,34 @@ export class MenuScene extends BaseScene {
 
   private createButtons(): void {
     const centerX = this.centerX();
-    
+
     // Кнопка "Турниры" (бывшая "Начать игру")
-    this.tournamentsButton = new Button('Турниры');
+    this.tournamentsButton = new Button("Турниры");
     this.tournamentsButton.x = centerX;
     this.tournamentsButton.y = 300;
     this.tournamentsButton.onPress = () => {
-      console.log('🎯 Переход к турнирам');
+      console.log("🎯 Переход к турнирам");
       // Здесь будет переход на TournamentsScene
       //this.emit('change-scene', 'TournamentsScene');
-      const tournament =       { 
+      const tournament = {
         id: 1,
-        name: 'Ежедневный турнир', 
-        players: '128/256', 
-        prize: '1,000 ₽',
-        entry: 'Бесплатно',
-        status: 'available',
-        time: '15:00',
-        duration: '2 часа',
-        rules: 'Лучший из 3 раундов',
-        prizeDistribution: ['1 место: 500 ₽', '2 место: 300 ₽', '3 место: 200 ₽'],
+        name: "Ежедневный турнир",
+        players: "128/256",
+        prize: "1,000 ₽",
+        entry: "Бесплатно",
+        status: "available",
+        time: "15:00",
+        duration: "2 часа",
+        rules: "Лучший из 3 раундов",
+        prizeDistribution: [
+          "1 место: 500 ₽",
+          "2 место: 300 ₽",
+          "3 место: 200 ₽",
+        ],
         lastTour: 2,
-        curTour: 1
-      }
-      this.emit('change-scene', 'TournamentInfoScene', tournament)
+        curTour: 1,
+      };
+      this.emit("change-scene", "TournamentInfoScene", tournament);
     };
     this.container.addChild(this.tournamentsButton);
 

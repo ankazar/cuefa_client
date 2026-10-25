@@ -5,7 +5,7 @@ class UserServiceClass {
   // Установить userId
   setUserId(id: number): void {
     this._userId = id;
-    console.log('👤 UserId установлен:', id);
+    console.log("👤 UserId установлен:", id);
   }
 
   // Получить userId

@@ -1,4 +1,4 @@
-import { Graphics, Text, Container } from 'pixi.js';
+import { Graphics, Text, Container } from "pixi.js";
 
 export class Button extends Container {
   private background: Graphics;
@@ -7,8 +7,8 @@ export class Button extends Container {
   constructor(text: string, width: number = 200, height: number = 50) {
     super();
 
-    this.eventMode = 'static';
-    this.cursor = 'pointer';
+    this.eventMode = "static";
+    this.cursor = "pointer";
 
     // Фон кнопки
     this.background = new Graphics();
@@ -21,9 +21,9 @@ export class Button extends Container {
       style: {
         fill: 0xffffff,
         fontSize: 20,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
+        fontFamily: "Arial",
+        fontWeight: "bold",
+      },
     });
     this.label.anchor.set(0.5);
     this.addChild(this.label);
@@ -39,21 +39,21 @@ export class Button extends Container {
   }
 
   private setupEvents(): void {
-    this.on('pointerover', () => {
+    this.on("pointerover", () => {
       this.drawBackground(0x2980b9);
       this.scale.set(1.05);
     });
 
-    this.on('pointerout', () => {
+    this.on("pointerout", () => {
       this.drawBackground(0x3498db);
       this.scale.set(1.0);
     });
 
-    this.on('pointerdown', () => {
+    this.on("pointerdown", () => {
       this.scale.set(0.95);
     });
 
-    this.on('pointerup', () => {
+    this.on("pointerup", () => {
       this.scale.set(1.05);
       if (this.onPress) {
         this.onPress();

@@ -1,6 +1,6 @@
-import { BaseScene } from './BaseScene';
-import { Graphics, Text, Container } from 'pixi.js';
-import { Button } from '../components/Button';
+import { BaseScene } from "./BaseScene";
+import { Graphics, Text, Container } from "pixi.js";
+import { Button } from "../components/Button";
 
 export class FindOpponentScene extends BaseScene {
   private background!: Graphics;
@@ -13,7 +13,7 @@ export class FindOpponentScene extends BaseScene {
   private dotsInterval: any;
 
   async init(tournamentData?: any): Promise<void> {
-    console.log('🔍 FindOpponentScene init вызван с данными:', tournamentData);
+    console.log("🔍 FindOpponentScene init вызван с данными:", tournamentData);
     this.tournamentData = tournamentData || this.getDefaultTournamentData();
     this.createBackground();
     this.createTitle();
@@ -24,9 +24,9 @@ export class FindOpponentScene extends BaseScene {
 
   private getDefaultTournamentData(): any {
     return {
-      name: 'Ежедневный турнир',
-      prize: '1,000 ₽',
-      entry: 'Бесплатно'
+      name: "Ежедневный турнир",
+      prize: "1,000 ₽",
+      entry: "Бесплатно",
     };
   }
 
@@ -39,17 +39,17 @@ export class FindOpponentScene extends BaseScene {
 
   private createTitle(): void {
     this.title = new Text({
-      text: 'ПОИСК СОПЕРНИКА',
+      text: "ПОИСК СОПЕРНИКА",
       style: {
         fill: 0xecf0f1,
         fontSize: 32,
-        fontFamily: 'Arial',
-        fontWeight: 'bold',
+        fontFamily: "Arial",
+        fontWeight: "bold",
         stroke: 0x3498db,
-        strokeThickness: 2
-      }
+        strokeThickness: 2,
+      },
     });
-    
+
     this.title.anchor.set(0.5);
     this.title.x = this.centerX();
     this.title.y = 80;
@@ -57,13 +57,13 @@ export class FindOpponentScene extends BaseScene {
   }
 
   private createBackButton(): void {
-    this.backButton = new Button('Отмена', 120, 40);
+    this.backButton = new Button("Отмена", 120, 40);
     this.backButton.x = 80;
     this.backButton.y = 50;
     this.backButton.onPress = () => {
-      console.log('❌ Отмена поиска соперника');
+      console.log("❌ Отмена поиска соперника");
       this.cancelSearch();
-      this.emit('change-scene', 'TournamentInfoScene', this.tournamentData);
+      this.emit("change-scene", "TournamentInfoScene", this.tournamentData);
     };
     this.container.addChild(this.backButton);
   }
@@ -98,9 +98,9 @@ export class FindOpponentScene extends BaseScene {
       style: {
         fill: 0xecf0f1,
         fontSize: 20,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
+        fontFamily: "Arial",
+        fontWeight: "bold",
+      },
     });
     tournamentName.anchor.set(0.5);
     tournamentName.x = 0;
@@ -113,8 +113,8 @@ export class FindOpponentScene extends BaseScene {
       style: {
         fill: 0xbdc3c7,
         fontSize: 16,
-        fontFamily: 'Arial'
-      }
+        fontFamily: "Arial",
+      },
     });
     detailsText.anchor.set(0.5);
     detailsText.x = 0;
@@ -127,13 +127,13 @@ export class FindOpponentScene extends BaseScene {
 
     // Анимация поиска
     const searchText = new Text({
-      text: 'Поиск соперника',
+      text: "Поиск соперника",
       style: {
         fill: 0x3498db,
         fontSize: 24,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
+        fontFamily: "Arial",
+        fontWeight: "bold",
+      },
     });
     searchText.anchor.set(0.5);
     searchText.x = 0;
@@ -142,13 +142,13 @@ export class FindOpponentScene extends BaseScene {
 
     // Анимированные точки
     const dots = new Text({
-      text: '.',
+      text: ".",
       style: {
         fill: 0x3498db,
         fontSize: 36,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
+        fontFamily: "Arial",
+        fontWeight: "bold",
+      },
     });
     dots.anchor.set(0.5);
     dots.x = 0;
@@ -159,7 +159,7 @@ export class FindOpponentScene extends BaseScene {
     let dotCount = 0;
     this.dotsInterval = setInterval(() => {
       dotCount = (dotCount + 1) % 4;
-      dots.text = '.'.repeat(dotCount);
+      dots.text = ".".repeat(dotCount);
     }, 500);
   }
 
@@ -171,8 +171,8 @@ export class FindOpponentScene extends BaseScene {
       style: {
         fill: 0xf1c40f,
         fontSize: 18,
-        fontFamily: 'Arial'
-      }
+        fontFamily: "Arial",
+      },
     });
     timerText.anchor.set(0.5);
     timerText.x = 0;
@@ -199,18 +199,24 @@ export class FindOpponentScene extends BaseScene {
     const playersY = 250;
 
     // Игрок 1 (вы)
-    const player1Card = this.createPlayerCard('ВЫ', 'Ожидание...', -120, playersY, 0x2c3e50);
+    const player1Card = this.createPlayerCard(
+      "ВЫ",
+      "Ожидание...",
+      -120,
+      playersY,
+      0x2c3e50,
+    );
     this.contentContainer.addChild(player1Card);
 
     // VS текст
     const vsText = new Text({
-      text: 'VS',
+      text: "VS",
       style: {
         fill: 0xe74c3c,
         fontSize: 28,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
+        fontFamily: "Arial",
+        fontWeight: "bold",
+      },
     });
     vsText.anchor.set(0.5);
     vsText.x = 0;
@@ -218,16 +224,28 @@ export class FindOpponentScene extends BaseScene {
     this.contentContainer.addChild(vsText);
 
     // Игрок 2 (противник)
-    const player2Card = this.createPlayerCard('ПРОТИВНИК', 'Поиск...', 120, playersY, 0x34495e);
+    const player2Card = this.createPlayerCard(
+      "ПРОТИВНИК",
+      "Поиск...",
+      120,
+      playersY,
+      0x34495e,
+    );
     this.contentContainer.addChild(player2Card);
 
     // Имитация найденного противника
     setTimeout(() => {
-      this.updateOpponentInfo(player2Card, 'Player_123', 'Найден');
+      this.updateOpponentInfo(player2Card, "Player_123", "Найден");
     }, 8000);
   }
 
-  private createPlayerCard(name: string, status: string, x: number, y: number, color: number): Container {
+  private createPlayerCard(
+    name: string,
+    status: string,
+    x: number,
+    y: number,
+    color: number,
+  ): Container {
     const card = new Container();
     card.x = x;
     card.y = y;
@@ -254,9 +272,9 @@ export class FindOpponentScene extends BaseScene {
       style: {
         fill: 0xecf0f1,
         fontSize: 16,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
+        fontFamily: "Arial",
+        fontWeight: "bold",
+      },
     });
     nameText.anchor.set(0.5);
     nameText.x = 0;
@@ -269,8 +287,8 @@ export class FindOpponentScene extends BaseScene {
       style: {
         fill: 0x95a5a6,
         fontSize: 14,
-        fontFamily: 'Arial'
-      }
+        fontFamily: "Arial",
+      },
     });
     statusText.anchor.set(0.5);
     statusText.x = 0;
@@ -280,7 +298,11 @@ export class FindOpponentScene extends BaseScene {
     return card;
   }
 
-  private updateOpponentInfo(playerCard: Container, name: string, status: string): void {
+  private updateOpponentInfo(
+    playerCard: Container,
+    name: string,
+    status: string,
+  ): void {
     // Обновляем информацию о противнике
     const nameText = playerCard.getChildAt(2) as Text;
     const statusText = playerCard.getChildAt(3) as Text;
@@ -307,12 +329,12 @@ export class FindOpponentScene extends BaseScene {
     const statsY = 380;
 
     const statsText = new Text({
-      text: '🔍 Ищем подходящего соперника по вашему рейтингу...',
+      text: "🔍 Ищем подходящего соперника по вашему рейтингу...",
       style: {
         fill: 0xbdc3c7,
         fontSize: 14,
-        fontFamily: 'Arial'
-      }
+        fontFamily: "Arial",
+      },
     });
     statsText.anchor.set(0.5);
     statsText.x = 0;
@@ -320,12 +342,12 @@ export class FindOpponentScene extends BaseScene {
     this.contentContainer.addChild(statsText);
 
     const queueText = new Text({
-      text: 'Очередь: 3 игрока • Время поиска: быстрое',
+      text: "Очередь: 3 игрока • Время поиска: быстрое",
       style: {
         fill: 0x95a5a6,
         fontSize: 12,
-        fontFamily: 'Arial'
-      }
+        fontFamily: "Arial",
+      },
     });
     queueText.anchor.set(0.5);
     queueText.x = 0;
@@ -334,12 +356,14 @@ export class FindOpponentScene extends BaseScene {
   }
 
   private startOpponentSearch(): void {
-    console.log(`🔍 Начат поиск соперника для турнира: ${this.tournamentData.name}`);
+    console.log(
+      `🔍 Начат поиск соперника для турнира: ${this.tournamentData.name}`,
+    );
   }
 
   private opponentFound(): void {
-    console.log('✅ Соперник найден! Переход к матчу...');
-    
+    console.log("✅ Соперник найден! Переход к матчу...");
+
     // Останавливаем анимации
     this.cancelSearch();
 
@@ -367,13 +391,13 @@ export class FindOpponentScene extends BaseScene {
     messageContainer.addChild(messageBg);
 
     const messageText = new Text({
-      text: 'СОПЕРНИК НАЙДЕН!',
+      text: "СОПЕРНИК НАЙДЕН!",
       style: {
         fill: 0xffffff,
         fontSize: 28,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
+        fontFamily: "Arial",
+        fontWeight: "bold",
+      },
     });
     messageText.anchor.set(0.5);
     messageText.x = 0;
@@ -381,20 +405,20 @@ export class FindOpponentScene extends BaseScene {
     messageContainer.addChild(messageText);
 
     const opponentText = new Text({
-      text: 'Player_123\nРейтинг: 1450',
+      text: "Player_123\nРейтинг: 1450",
       style: {
         fill: 0xffffff,
         fontSize: 16,
-        fontFamily: 'Arial',
-        align: 'center'
-      }
+        fontFamily: "Arial",
+        align: "center",
+      },
     });
     opponentText.anchor.set(0.5);
     opponentText.x = 0;
     opponentText.y = 0;
     messageContainer.addChild(opponentText);
 
-    const startButton = new Button('НАЧАТЬ МАТЧ', 180, 50);
+    const startButton = new Button("НАЧАТЬ МАТЧ", 180, 50);
     startButton.x = 0;
     startButton.y = 40;
     startButton.onPress = () => {
@@ -405,12 +429,12 @@ export class FindOpponentScene extends BaseScene {
     // Анимация появления
     messageContainer.alpha = 0;
     messageContainer.scale.set(0.8);
-    
+
     const animateIn = setInterval(() => {
       messageContainer.alpha += 0.1;
       messageContainer.scale.x += 0.02;
       messageContainer.scale.y += 0.02;
-      
+
       if (messageContainer.alpha >= 1) {
         clearInterval(animateIn);
       }
@@ -418,15 +442,15 @@ export class FindOpponentScene extends BaseScene {
   }
 
   private startMatch(): void {
-    console.log('🎮 Начало матча! Переход на MatchScene...');
-    
+    console.log("🎮 Начало матча! Переход на MatchScene...");
+
     // Переходим на сцену матча
-    this.emit('change-scene', 'MatchScene', this.tournamentData);
+    this.emit("change-scene", "MatchScene", this.tournamentData);
   }
 
   private cancelSearch(): void {
-    console.log('❌ Поиск соперника отменен');
-    
+    console.log("❌ Поиск соперника отменен");
+
     // Останавливаем все таймеры
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
@@ -442,7 +466,7 @@ export class FindOpponentScene extends BaseScene {
     this.background.fill(0x0f1c2e);
 
     this.title.x = this.centerX();
-    
+
     if (this.contentContainer) {
       this.contentContainer.x = this.centerX();
     }

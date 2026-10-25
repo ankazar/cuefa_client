@@ -1,6 +1,6 @@
-import { BaseScene } from './BaseScene';
-import { Graphics, Text, Container, Assets, Sprite, Texture } from 'pixi.js';
-import { Button } from '../components/Button';
+import { BaseScene } from "./BaseScene";
+import { Graphics, Text, Container, Assets, Sprite, Texture } from "pixi.js";
+import { Button } from "../components/Button";
 
 export class ResultsScene extends BaseScene {
   private background!: Graphics;
@@ -10,7 +10,7 @@ export class ResultsScene extends BaseScene {
 
   async init(matchData?: any): Promise<void> {
     this.matchData = matchData;
-    console.log('this.matchData.tournamentData: ', this.matchData.tournament)
+    console.log("this.matchData.tournamentData: ", this.matchData.tournament);
     this.createBackground();
     this.createTitle();
     this.createContent();
@@ -23,46 +23,46 @@ export class ResultsScene extends BaseScene {
     this.background.fill(0x004bbc);
     this.container.addChild(this.background);
 
-    const texture = Assets.cache.get('rays') as Texture;
+    const texture = Assets.cache.get("rays") as Texture;
 
     const imageBg = new Sprite(texture);
-    imageBg.width = this.app.screen.width*2;
-    imageBg.height = this.app.screen.height*2;
-    imageBg.x = this.centerX()
-    imageBg.y = this.centerY() 
-    imageBg.anchor.set(0.5)
+    imageBg.width = this.app.screen.width * 2;
+    imageBg.height = this.app.screen.height * 2;
+    imageBg.x = this.centerX();
+    imageBg.y = this.centerY();
+    imageBg.anchor.set(0.5);
     //imageBg.alpha = 0.3; // 30% прозрачности
     this.container.addChild(imageBg);
   }
   //private createBackground(): void {
   //  this.background = new Graphics();
   //  this.background.rect(0, 0, this.app.screen.width, this.app.screen.height);
-  //  
+  //
   //  if (this.matchData.result.winner) {
   //    this.background.fill(0x1b5e20); // Зеленый для победы
   //  } else {
   //    this.background.fill(0xb71c1c); // Красный для поражения
   //  }
-  //  
+  //
   //  this.container.addChild(this.background);
   //}
 
   private createTitle(): void {
     const isWinner = this.matchData.result.winner;
-    
+
     this.title = new Text({
-      text: isWinner ? 'ПОБЕДА! 🎉' : 'ПОРАЖЕНИЕ',
+      text: isWinner ? "ПОБЕДА! 🎉" : "ПОРАЖЕНИЕ",
       style: {
         fill: 0xffffff,
-        fontSize:Math.round(this.app.screen.height * 0.1),
+        fontSize: Math.round(this.app.screen.height * 0.1),
         //fontSize: 48,
-        fontFamily: 'Arial',
-        fontWeight: 'bold',
+        fontFamily: "Arial",
+        fontWeight: "bold",
         stroke: isWinner ? 0x4caf50 : 0xf44336,
-        strokeThickness: 4
-      }
+        strokeThickness: 4,
+      },
     });
-    
+
     this.title.anchor.set(0.5);
     this.title.x = this.centerX();
     //this.title.y = 100;
@@ -88,9 +88,9 @@ export class ResultsScene extends BaseScene {
       style: {
         fill: 0xffffff,
         fontSize: 20,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
+        fontFamily: "Arial",
+        fontWeight: "bold",
+      },
     });
     infoText.anchor.set(0.5);
     infoText.x = 0;
@@ -116,49 +116,47 @@ export class ResultsScene extends BaseScene {
       style: {
         fill: 0x333333,
         fontSize: 18,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
+        fontFamily: "Arial",
+        fontWeight: "bold",
+      },
     });
     scoreTitle.anchor.set(0.5);
     scoreTitle.x = 0;
     scoreTitle.y = scoreY + 20;
     this.contentContainer.addChild(scoreTitle);
 
-    if(this.matchData.result.winner){
+    if (this.matchData.result.winner) {
       const curTour = this.matchData.tournament.curTour;
       const lastTour = this.matchData.tournament.lastTour;
-      var txt;
+      let txt;
 
-      if(curTour == lastTour){
-        txt = 'Победа в турнире'
-      }
-      else{
-        txt = `Вы выиграли ${curTour} тур из ${lastTour}`        
+      if (curTour == lastTour) {
+        txt = "Победа в турнире";
+      } else {
+        txt = `Вы выиграли ${curTour} тур из ${lastTour}`;
       }
 
-    const scoreTitle = new Text({
-      text: txt,
-      style: {
-        fill: 0x333333,
-        fontSize: 18,
-        fontFamily: 'Arial',
-        fontWeight: 'bold'
-      }
-    });
-    scoreTitle.anchor.set(0.5);
-    scoreTitle.x = 0;
-    scoreTitle.y = scoreY + 40;
-    this.contentContainer.addChild(scoreTitle);
-    }
-    else{
+      const scoreTitle = new Text({
+        text: txt,
+        style: {
+          fill: 0x333333,
+          fontSize: 18,
+          fontFamily: "Arial",
+          fontWeight: "bold",
+        },
+      });
+      scoreTitle.anchor.set(0.5);
+      scoreTitle.x = 0;
+      scoreTitle.y = scoreY + 40;
+      this.contentContainer.addChild(scoreTitle);
+    } else {
       const loseText = new Text({
-        text: '😔 Вы выбыли из турнира',
+        text: "😔 Вы выбыли из турнира",
         style: {
           fill: 0x333333,
           fontSize: 20,
-          fontFamily: 'Arial'
-        }
+          fontFamily: "Arial",
+        },
       });
       loseText.anchor.set(0.5);
       loseText.x = 0;
@@ -171,21 +169,19 @@ export class ResultsScene extends BaseScene {
     const prizeY = 220;
     const isWinner = this.matchData.result.winner;
 
-    if (isWinner) 
-    {
+    if (isWinner) {
       const curTour = this.matchData.tournament.curTour;
       const lastTour = this.matchData.tournament.lastTour;
 
-      if(curTour == lastTour)
-      {
+      if (curTour == lastTour) {
         const prizeText = new Text({
           text: `🏆 ВЫ ВЫИГРАЛИ: ${this.matchData.tournament.prize}`, //TODO не определяет во втором туре
           style: {
             fill: 0xffd700,
             fontSize: 24,
-            fontFamily: 'Arial',
-            fontWeight: 'bold'
-          }
+            fontFamily: "Arial",
+            fontWeight: "bold",
+          },
         });
         prizeText.anchor.set(0.5);
         prizeText.x = 0;
@@ -194,10 +190,8 @@ export class ResultsScene extends BaseScene {
 
         // Анимация падающих монет
         this.createCoinAnimation();
-      }    
-    } 
-    else 
-    {
+      }
+    } else {
       //const loseText = new Text({
       //  text: '😔 Вы выбыли из турнира',
       //  style: {
@@ -218,11 +212,11 @@ export class ResultsScene extends BaseScene {
     for (let i = 0; i < 5; i++) {
       setTimeout(() => {
         const coin = new Text({
-          text: '💰',
+          text: "💰",
           style: {
             fontSize: 24,
-            fontFamily: 'Arial'
-          }
+            fontFamily: "Arial",
+          },
         });
         coin.x = Math.random() * this.app.screen.width;
         coin.y = -50;
@@ -243,85 +237,87 @@ export class ResultsScene extends BaseScene {
   private createNavigationButtons(): void {
     const buttonsY = this.app.screen.height * 0.65;
 
-    const isWin = this.matchData.result.winner
+    const isWin = this.matchData.result.winner;
 
-
-    if (!isWin){
+    if (!isWin) {
       // Кнопка "В турниры"
       //Если турнир не доступен, тогда к турнирам
       //Если доступен то на страницу турнира или прямо в игровую комнату
-      const tournamentsButton = new Button('К ТУРНИРАМ', 180, 50);
+      const tournamentsButton = new Button("К ТУРНИРАМ", 180, 50);
       tournamentsButton.y = buttonsY;
       tournamentsButton.onPress = () => {
-      //this.emit('change-scene', 'TournamentsScene');
-        const tournament =       { 
-        id: 1,
-        name: 'Ежедневный турнир', 
-        players: '128/256', 
-        prize: '1,000 ₽',
-        entry: 'Бесплатно',
-        status: 'available',
-        time: '15:00',
-        duration: '2 часа',
-        rules: 'Лучший из 3 раундов',
-        prizeDistribution: ['1 место: 500 ₽', '2 место: 300 ₽', '3 место: 200 ₽'],
-        lastTour: 2,
-        curTour: 1
-      }
-      this.emit('change-scene', 'TournamentInfoScene', tournament)
-    };
-    this.contentContainer.addChild(tournamentsButton);
-    }
-    else{
-const curTour = this.matchData.tournament.curTour;
+        //this.emit('change-scene', 'TournamentsScene');
+        const tournament = {
+          id: 1,
+          name: "Ежедневный турнир",
+          players: "128/256",
+          prize: "1,000 ₽",
+          entry: "Бесплатно",
+          status: "available",
+          time: "15:00",
+          duration: "2 часа",
+          rules: "Лучший из 3 раундов",
+          prizeDistribution: [
+            "1 место: 500 ₽",
+            "2 место: 300 ₽",
+            "3 место: 200 ₽",
+          ],
+          lastTour: 2,
+          curTour: 1,
+        };
+        this.emit("change-scene", "TournamentInfoScene", tournament);
+      };
+      this.contentContainer.addChild(tournamentsButton);
+    } else {
+      const curTour = this.matchData.tournament.curTour;
       const lastTour = this.matchData.tournament.lastTour;
-    
-    if (curTour == lastTour)
-    {
-      // Кнопка "Список турниров"
-      const nextMatchButton = new Button('Список турниров', 200, 50);
-      nextMatchButton.y = buttonsY;
-      nextMatchButton.onPress = () => {
-      // Можно вернуться к поиску матча или в меню
-      //this.emit('change-scene', 'TournamentsScene', this.matchData.tournament); //TODO переименовать в tournamentData
-      const tournament =       { 
-        id: 1,
-        name: 'Ежедневный турнир', 
-        players: '128/256', 
-        prize: '1,000 ₽',
-        entry: 'Бесплатно',
-        status: 'available',
-        time: '15:00',
-        duration: '2 часа',
-        rules: 'Лучший из 3 раундов',
-        prizeDistribution: ['1 место: 500 ₽', '2 место: 300 ₽', '3 место: 200 ₽'],
-        lastTour: 2,
-        curTour: 1
-      }
-      this.emit('change-scene', 'TournamentInfoScene', tournament)
-    };
-    this.contentContainer.addChild(nextMatchButton);
-    }
-    else
-    {
-      // Кнопка "Следующий матч"
-      const nextMatchButton = new Button('СЛЕДУЮЩИЙ МАТЧ', 200, 50);
-      nextMatchButton.y = buttonsY;
-      nextMatchButton.onPress = () => {
-      this.matchData.tournament.curTour += 1; //TODO может перенести где кнопка нажимается
-      // Можно вернуться к поиску матча или в меню
-      this.emit('change-scene', 'MatchScene', this.matchData.tournament); //TODO переименовать в tournamentData
-    };
-    this.contentContainer.addChild(nextMatchButton);
-    }  
-    }
 
+      if (curTour == lastTour) {
+        // Кнопка "Список турниров"
+        const nextMatchButton = new Button("Список турниров", 200, 50);
+        nextMatchButton.y = buttonsY;
+        nextMatchButton.onPress = () => {
+          // Можно вернуться к поиску матча или в меню
+          //this.emit('change-scene', 'TournamentsScene', this.matchData.tournament); //TODO переименовать в tournamentData
+          const tournament = {
+            id: 1,
+            name: "Ежедневный турнир",
+            players: "128/256",
+            prize: "1,000 ₽",
+            entry: "Бесплатно",
+            status: "available",
+            time: "15:00",
+            duration: "2 часа",
+            rules: "Лучший из 3 раундов",
+            prizeDistribution: [
+              "1 место: 500 ₽",
+              "2 место: 300 ₽",
+              "3 место: 200 ₽",
+            ],
+            lastTour: 2,
+            curTour: 1,
+          };
+          this.emit("change-scene", "TournamentInfoScene", tournament);
+        };
+        this.contentContainer.addChild(nextMatchButton);
+      } else {
+        // Кнопка "Следующий матч"
+        const nextMatchButton = new Button("СЛЕДУЮЩИЙ МАТЧ", 200, 50);
+        nextMatchButton.y = buttonsY;
+        nextMatchButton.onPress = () => {
+          this.matchData.tournament.curTour += 1; //TODO может перенести где кнопка нажимается
+          // Можно вернуться к поиску матча или в меню
+          this.emit("change-scene", "MatchScene", this.matchData.tournament); //TODO переименовать в tournamentData
+        };
+        this.contentContainer.addChild(nextMatchButton);
+      }
+    }
   }
 
   resize(width: number, height: number): void {
     this.background.clear();
     this.background.rect(0, 0, width, height);
-    
+
     if (this.matchData.result.winner) {
       this.background.fill(0x1b5e20);
     } else {
@@ -329,7 +325,7 @@ const curTour = this.matchData.tournament.curTour;
     }
 
     this.title.x = this.centerX();
-    
+
     if (this.contentContainer) {
       this.contentContainer.x = this.centerX();
     }
