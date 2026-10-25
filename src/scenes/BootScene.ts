@@ -107,45 +107,46 @@ export class BootScene extends BaseScene {
     this.container.addChild(errorText);
   }
 
-  private async initVK(): Promise<void> {
-    console.log('start initVK()');
-  try {
-    // В обычном браузере не ждём VKWebAppInit, чтобы избежать зависания
-  const initPromise = bridge.send('VKWebAppInit').catch(() => null);
+private async initVK(): Promise<void> {
+  const isVKWebView = bridge.isWebView();
+  console.log('isWebView:', isVKWebView);
 
-  // Даём максимум 2 секунды, если таймаут — считаем, что среда не VK
-  const result = await Promise.race([
-    initPromise,
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
-  ]);
+  // 1. В не-WebView среде (обычный браузер) сразу используем fallback, не ждём VKWebAppInit
+  if (!isVKWebView) {
+    console.log('🌐 Обычный браузер — fallback-пользователь');
+    UserService.setUserData({ userName: 'Андрей Молотов+' });
+    return;
+  }
+
+  // 2. В WebView ждём инициализацию с таймаутом
+  try {
+    const initPromise = bridge.send('VKWebAppInit');
+    const result = await Promise.race([
+      initPromise,
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
+    ]);
 
     if (!result) {
-    console.log('🌐 Не VK-среда или таймаут инициализации, используется fallback');
+      console.warn('⚠️ VKWebAppInit timeout, fallback');
+      UserService.setUserData({ userName: 'Гость' });
+      return;
+    }
+  } catch (e) {
+    console.error('❌ VKWebAppInit failed:', e);
     UserService.setUserData({ userName: 'Гость' });
     return;
   }
 
+  // 3. Инициализация завершена, получаем данные пользователя
   let userName = 'Гость';
-
-  if (bridge.isWebView()) {
-    try {
-      const user = await bridge.send('VKWebAppGetUserInfo');
-      userName =
-        [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Гость';
-    } catch (e) {
-      console.error('❌ VKWebAppGetUserInfo failed:', e);
-    }
-  } else {
-    console.log('🌐 Обычный браузер — fallback-пользователь');
-    userName = 'Андрей Молотов+'; // или 'Гость' для продакшена
+  try {
+    const user = await bridge.send('VKWebAppGetUserInfo');
+    userName =
+      [user.first_name, user.last_name].filter(Boolean).join(' ') || 'Гость';
+  } catch (e) {
+    console.error('❌ VKWebAppGetUserInfo failed:', e);
   }
 
   UserService.setUserData({ userName });
-
-    // Subscribes to event, sended by client
-    //bridge.subscribe((e) => console.log(e));
-    } catch (e) {
-    console.error('❌ VKWebAppInit failed:', e);
-  }
 }
 }
