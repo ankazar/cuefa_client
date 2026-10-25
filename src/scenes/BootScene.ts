@@ -108,17 +108,6 @@ export class BootScene extends BaseScene {
   }
 
 private async initVK(): Promise<void> {
-  const isVKWebView = bridge.isWebView();
-  console.log('isWebView:', isVKWebView);
-
-  // 1. В не-WebView среде (обычный браузер) сразу используем fallback, не ждём VKWebAppInit
-  if (!isVKWebView) {
-    console.log('🌐 Обычный браузер — fallback-пользователь');
-    UserService.setUserData({ userName: 'Андрей Молотов+' });
-    return;
-  }
-
-  // 2. В WebView ждём инициализацию с таймаутом
   try {
     const initPromise = bridge.send('VKWebAppInit');
     const result = await Promise.race([
