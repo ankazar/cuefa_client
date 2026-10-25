@@ -116,19 +116,13 @@ export class BootScene extends BaseScene {
   // Даём максимум 2 секунды, если таймаут — считаем, что среда не VK
   const result = await Promise.race([
     initPromise,
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000)),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 5000)),
   ]);
 
     if (!result) {
     console.log('🌐 Не VK-среда или таймаут инициализации, используется fallback');
     UserService.setUserData({ userName: 'Гость' });
     return;
-  }
-
-    const data = await bridge.send('VKWebAppInit');
-    if (!data.result) console.warn('⚠️ VKWebAppInit: result=false');
-  } catch (e) {
-    console.error('❌ VKWebAppInit failed:', e);
   }
 
   let userName = 'Гость';
@@ -150,5 +144,8 @@ export class BootScene extends BaseScene {
 
     // Subscribes to event, sended by client
     //bridge.subscribe((e) => console.log(e));
+    } catch (e) {
+    console.error('❌ VKWebAppInit failed:', e);
+  }
 }
 }
