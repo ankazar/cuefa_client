@@ -72,6 +72,8 @@ export class BootScene extends BaseScene {
         // другие ресурсы...
       ]);
 
+      this.initVK();
+
       // Переходим на следующую сцену
       this.emit("change-scene", "MenuScene");
     } catch (error) {
@@ -131,4 +133,37 @@ export class BootScene extends BaseScene {
     errorText.y = this.centerY();
     this.container.addChild(errorText);
   }
+
+  private async initVK() {
+  try {
+    const data = await bridge.send('VKWebAppInit');
+    if (data.result) {
+      console.log('✅ VKWebAppInit сработал корректно');
+    } else {
+      console.warn('⚠️ VKWebAppInit вернул result: false');
+    }
+  } catch (error) {
+    console.error('❌ Ошибка инициализации VK Bridge:', error);
+    return;
+  }
+
+  // Теперь проверяем среду ПОСЛЕ инициализации
+  if (bridge.isWebView()) {
+    console.log('✅ Запущено внутри клиента VK');
+    try {
+      const user = await bridge.send('VKWebAppGetUserInfo');
+      console.log('Имя:', user.first_name);
+      console.log('Фамилия:', user.last_name);
+      UserService.setUserData({
+        userName: `${user.first_name} ${user.last_name}`
+      });
+    } catch (e) {
+      console.error('❌ Не удалось получить данные пользователя:', e);
+      UserService.setUserData({ userName: 'Гость' });
+    }
+  } else {
+    console.log('🌐 Запущено в обычном браузере');
+    UserService.setUserData({ userName: 'Андрей Молотов+' });
+  }
+}
 }
